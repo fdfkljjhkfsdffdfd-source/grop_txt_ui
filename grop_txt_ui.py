@@ -117,7 +117,9 @@ class GropTxtUI:
         preview_frame = tk.LabelFrame(right_frame, text=" Current Selection Preview ", bg="#0f172a", fg="#10b981", font=("Arial", 10, "bold"), padx=15, pady=10)
         preview_frame.pack(fill="x", pady=5)
         
-        tk.Button(preview_frame, text="🗑️ Clear All", command=self.controller.clear_selection, bg="#ef4444", fg="white", font=("Arial", 8, "bold"), bd=0, padx=8).pack(anchor="e")
+        tk.Button(preview_frame, text="✅ Select All", command=self.controller.select_all, bg="#10b981", fg="white", font=("Arial", 8, "bold"), bd=0, padx=8).pack(side="left", padx=2)
+        tk.Button(preview_frame, text="❌ Deselect All", command=self.controller.deselect_all, bg="#ef4444", fg="white", font=("Arial", 8, "bold"), bd=0, padx=8).pack(side="left", padx=2)
+        tk.Button(preview_frame, text="🗑️ Clear All", command=self.controller.clear_selection, bg="#64748b", fg="white", font=("Arial", 8, "bold"), bd=0, padx=8).pack(side="right")
         
         self.selection_display = scrolledtext.ScrolledText(preview_frame, height=6, bg="#020617", fg="#38bdf8", font=("Consolas", 9), bd=0)
         self.selection_display.pack(fill="x", pady=5)

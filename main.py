@@ -166,20 +166,72 @@ class GropTxtController:
         values = self.ui.tree.item(node, "values")
         if not values: return
         
-        tags = self.ui.tree.item(node, "tags")
-        if "ignored" in tags: return
         path = values[0]
-        self.engine.selected_paths.add(path)
-        for child in self.ui.tree.get_children(node): self._recursive_select(child)
+        if os.path.isdir(path):
+            # สแกนไฟล์จริงในโฟลเดอร์
+            ignores = self.engine.get_ignores(self.ui.ignore_entry.get())
+            ext_str = self.ui.ext_entry.get()
+            exts = [x.strip().lower() if x.strip().startswith(".") else "." + x.strip().lower() 
+                   for x in ext_str.split(",") if x.strip()]
+            
+            for root, dirs, files in os.walk(path):
+                dirs[:] = [d for d in dirs if d not in ignores and not d.startswith('.')]
+                for f in files:
+                    if any(f.lower().endswith(e) for e in exts) and f not in ignores:
+                        self.engine.selected_paths.add(os.path.join(root, f))
+            
+            self.engine.selected_paths.add(path) # เพิ่มโฟลเดอร์เองด้วยเพื่อให้ UI แสดงผล
+        else:
+            tags = self.ui.tree.item(node, "tags")
+            if "ignored" not in tags:
+                self.engine.selected_paths.add(path)
+        
+        for child in self.ui.tree.get_children(node):
+            self._recursive_select(child)
 
     def _recursive_deselect(self, node):
         values = self.ui.tree.item(node, "values")
         if not values: return
         
         path = values[0]
-        if path in self.engine.selected_paths:
-            self.engine.selected_paths.remove(path)
-        for child in self.ui.tree.get_children(node): self._recursive_deselect(child)
+        if os.path.isdir(path):
+            # ลบทุกอย่างที่ขึ้นต้นด้วย path นี้
+            to_remove = [p for p in self.engine.selected_paths if p.startswith(path)]
+            for p in to_remove:
+                self.engine.selected_paths.remove(p)
+        else:
+            if path in self.engine.selected_paths:
+                self.engine.selected_paths.remove(path)
+                
+        for child in self.ui.tree.get_children(node):
+            self._recursive_deselect(child)
+
+    def select_all(self):
+        """เลือกไฟล์ทั้งหมดในโปรเจกต์"""
+        if not self.engine.project_root: return
+        self.engine.selected_paths.clear()
+        
+        ignores = self.engine.get_ignores(self.ui.ignore_entry.get())
+        ext_str = self.ui.ext_entry.get()
+        exts = [x.strip().lower() if x.strip().startswith(".") else "." + x.strip().lower() 
+               for x in ext_str.split(",") if x.strip()]
+        
+        for root, dirs, files in os.walk(self.engine.project_root):
+            dirs[:] = [d for d in dirs if d not in ignores and not d.startswith('.')]
+            # เพิ่มโฟลเดอร์เข้า selection เพื่อให้ UI สวยงาม
+            self.engine.selected_paths.add(root)
+            for f in files:
+                if any(f.lower().endswith(e) for e in exts) and f not in ignores:
+                    self.engine.selected_paths.add(os.path.join(root, f))
+        
+        self._update_tree_visuals()
+        self.ui.update_selection_preview(self.engine.selected_paths)
+
+    def deselect_all(self):
+        """ยกเลิกการเลือกทั้งหมด"""
+        self.engine.selected_paths.clear()
+        self._update_tree_visuals()
+        self.ui.update_selection_preview(self.engine.selected_paths)
 
     def _update_tree_visuals(self):
         """อัปเดตการแสดงผล (สี/สัญลักษณ์) ของ Treeview"""
