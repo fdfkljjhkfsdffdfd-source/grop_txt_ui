@@ -16,6 +16,7 @@ class GropTxtEngine:
         self.current_profile = "Default"
         self.history = []
         self.ignore_list = ".git, node_modules, .venv, __pycache__, dist, build"
+        self.recent_projects = []
         self.all_project_paths = []
         self.source_files_map = {}
 
@@ -29,6 +30,7 @@ class GropTxtEngine:
                     self.current_profile = data.get("last_profile", "Default")
                     self.history = data.get("history", [])
                     self.ignore_list = data.get("ignore_list", self.ignore_list)
+                    self.recent_projects = data.get("recent_projects", [])
                     
                     prof_data = self.profiles.get(self.current_profile, {})
                     self.project_root = prof_data.get("root", "")
@@ -46,7 +48,8 @@ class GropTxtEngine:
             "profiles": self.profiles,
             "last_profile": self.current_profile,
             "history": self.history[-50:],
-            "ignore_list": current_ignore_list
+            "ignore_list": current_ignore_list,
+            "recent_projects": self.recent_projects[:10]
         }
         with open(self.config_file, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
@@ -157,7 +160,7 @@ class GropTxtEngine:
                 all_paths.append(os.path.relpath(os.path.join(root, f), self.project_root))
         self.all_project_paths = sorted(all_paths)
 
-    def merge_files(self, extensions_str, ignore_str):
+    def merge_files(self, extensions_str, ignore_str, progress_callback=None):
         """รวมไฟล์ที่เลือกเข้าด้วยกัน"""
         exts = [x.strip().lower() if x.strip().startswith(".") else "." + x.strip().lower() 
                 for x in extensions_str.split(",") if x.strip()]
@@ -184,14 +187,21 @@ class GropTxtEngine:
         out_name = f"merged_{timestamp}.txt"
         final_p = os.path.join(self.base_dir, out_name)
         
+        total_files = len(file_list)
         with open(final_p, "w", encoding="utf-8") as out_f:
             out_f.write(f"# GROP_TXT MERGE REPORT\n# Generated: {datetime.now()}\n")
-            for fp in file_list:
+            for i, fp in enumerate(file_list):
+                if progress_callback:
+                    progress_callback(i + 1, total_files)
+                
                 rel = os.path.relpath(fp, self.project_root) if self.project_root else fp
                 out_f.write(f"\n# --- START: {rel} ---\n")
                 try:
                     with open(fp, "r", encoding="utf-8", errors="ignore") as in_f:
-                        out_f.write(in_f.read())
+                        while True:
+                            chunk = in_f.read(1024 * 1024) # 1MB chunk
+                            if not chunk: break
+                            out_f.write(chunk)
                 except Exception as e:
                     out_f.write(f"\n[Error: {e}]\n")
         
