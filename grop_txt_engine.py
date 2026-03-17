@@ -1,5 +1,7 @@
 import os
 import json
+import fnmatch
+import re
 from datetime import datetime
 
 class GropTxtEngine:
@@ -19,22 +21,23 @@ class GropTxtEngine:
         self.recent_projects = []
         self.all_project_paths = []
         self.source_files_map = {}
+        self.gitignore_rules = []
 
         # Presets Configuration
         self.presets = {
-            "Frontend": {
+            "ฟรอนต์เอนด์": {
                 "ext": ".tsx, .jsx, .js, .html, .css, .scss",
                 "ignore": "node_modules, .git, dist, build, .next"
             },
-            "Backend": {
+            "แบ็คเอนด์": {
                 "ext": ".py, .sql, .env.example, .json, .yaml, .go, .php",
                 "ignore": "__pycache__, .venv, .git, node_modules, vendor"
             },
-            "Full Stack": {
+            "ฟูลสแต็ก": {
                 "ext": ".tsx, .ts, .py, .js, .sql, .html, .css, .json",
                 "ignore": "node_modules, .venv, .git, dist, build"
             },
-            "Docs": {
+            "เอกสาร": {
                 "ext": ".md, .txt, .pdf, .docx",
                 "ignore": ".git, node_modules"
             }
@@ -120,15 +123,17 @@ class GropTxtEngine:
         if not self.project_root:
             return []
         
-        ignores = self.get_ignores(ignore_str)
+        self.load_gitignore()
         project_files = {} # filename -> [list of full paths]
         
         for root, dirs, files in os.walk(self.project_root):
-            dirs[:] = [d for d in dirs if d not in ignores and not d.startswith('.')]
+            dirs[:] = [d for d in dirs if not self.is_path_ignored(os.path.join(root, d), ignore_str)]
             for f in files:
-                if f in ignores: continue
+                full_path = os.path.join(root, f)
+                if self.is_path_ignored(full_path, ignore_str):
+                    continue
                 if f not in project_files: project_files[f] = []
-                project_files[f].append(os.path.join(root, f))
+                project_files[f].append(full_path)
         
         matches = []
         for fname, src_path in self.source_files_map.items():
@@ -157,46 +162,116 @@ class GropTxtEngine:
                     with open(target_path, 'w', encoding='utf-8') as f_dest:
                         f_dest.write(content)
                     success_count += 1
-                    logs.append(f"✅ Updated: {match['target']}")
+                    logs.append(f"✅ อัปเดตแล้ว: {match['target']}")
                 except Exception as e:
-                    logs.append(f"❌ Failed {match['target']}: {e}")
+                    logs.append(f"❌ ล้มเหลว {match['target']}: {e}")
         return success_count, logs
 
     def get_ignores(self, ignore_str):
         """แปลงข้อความ Ignore เป็นรายการ"""
         return [x.strip() for x in ignore_str.split(",") if x.strip()]
 
+    def load_gitignore(self):
+        """โหลดกฎจากไฟล์ .gitignore"""
+        self.gitignore_rules = []
+        if not self.project_root:
+            return
+        
+        gitignore_path = os.path.join(self.project_root, ".gitignore")
+        if os.path.exists(gitignore_path):
+            try:
+                with open(gitignore_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if not line or line.startswith('#'):
+                            continue
+                        
+                        negate = line.startswith('!')
+                        if negate:
+                            line = line[1:]
+                        
+                        # แปลง pattern เป็น regex อย่างง่าย
+                        pattern = line
+                        if pattern.endswith('/'):
+                            pattern = pattern[:-1]
+                        
+                        try:
+                            regex_str = fnmatch.translate(pattern)
+                            self.gitignore_rules.append((re.compile(regex_str), negate))
+                        except:
+                            continue
+            except Exception as e:
+                print(f"Error loading .gitignore: {e}")
+
+    def is_path_ignored(self, path, ignore_str):
+        """ตรวจสอบว่า Path นี้ควรถูกข้ามหรือไม่ (เช็คทั้งรายการแมนนวลและ .gitignore)"""
+        if not self.project_root:
+            return False
+            
+        basename = os.path.basename(path)
+        ignores = self.get_ignores(ignore_str)
+        
+        # 1. เช็คจากรายการแมนนวล
+        if basename in ignores:
+            return True
+            
+        # 2. เช็คจาก .gitignore
+        try:
+            rel_path = os.path.relpath(path, self.project_root).replace(os.sep, '/')
+            if rel_path == '.': return False
+            
+            ignored = False
+            for regex, negate in self.gitignore_rules:
+                if regex.match(rel_path) or regex.match(basename):
+                    ignored = not negate
+            
+            if ignored: return True
+            
+            # เช็คโฟลเดอร์แม่ด้วย (Recursive check for parents)
+            parent = os.path.dirname(path)
+            if parent != path and parent.startswith(self.project_root):
+                if self.is_path_ignored(parent, ignore_str):
+                    return True
+        except:
+            pass
+            
+        return False
+
     def scan_project_files(self, ignore_str):
         """สแกนไฟล์ทั้งหมดในโปรเจกต์เพื่อใช้ใน Map และ Smart Update"""
         if not self.project_root:
             return
         
-        ignores = self.get_ignores(ignore_str)
+        self.load_gitignore()
         all_paths = []
         for root, dirs, files in os.walk(self.project_root):
-            dirs[:] = [d for d in dirs if d not in ignores and not d.startswith('.')]
+            # กรองโฟลเดอร์
+            dirs[:] = [d for d in dirs if not self.is_path_ignored(os.path.join(root, d), ignore_str)]
+            
             for f in files:
-                if f in ignores: continue
-                all_paths.append(os.path.relpath(os.path.join(root, f), self.project_root))
+                full_path = os.path.join(root, f)
+                if self.is_path_ignored(full_path, ignore_str):
+                    continue
+                all_paths.append(os.path.relpath(full_path, self.project_root))
         self.all_project_paths = sorted(all_paths)
 
     def merge_files(self, extensions_str, ignore_str, progress_callback=None):
         """รวมไฟล์ที่เลือกเข้าด้วยกัน"""
         exts = [x.strip().lower() if x.strip().startswith(".") else "." + x.strip().lower() 
                 for x in extensions_str.split(",") if x.strip()]
-        ignores = self.get_ignores(ignore_str)
+        self.load_gitignore()
         
         file_list = []
         for p in self.selected_paths:
             if not os.path.exists(p): continue
             if os.path.isfile(p):
-                if os.path.basename(p) not in ignores: file_list.append(p)
+                if not self.is_path_ignored(p, ignore_str): file_list.append(p)
             elif os.path.isdir(p):
                 for root, dirs, files in os.walk(p):
-                    dirs[:] = [d for d in dirs if d not in ignores]
+                    dirs[:] = [d for d in dirs if not self.is_path_ignored(os.path.join(root, d), ignore_str)]
                     for f in files:
-                        if f in ignores: continue
                         full_f = os.path.join(root, f)
+                        if self.is_path_ignored(full_f, ignore_str): continue
                         if not exts or os.path.splitext(f)[1].lower() in exts:
                             file_list.append(full_f)
         

@@ -73,6 +73,7 @@ class GropTxtController:
         path = os.path.normpath(path)
         if os.path.exists(path):
             self.engine.project_root = path
+            self.engine.load_gitignore() # โหลด .gitignore ทันทีที่เปิดโปรเจกต์
             self.engine.selected_paths = set()
             self.refresh_tree()
             self.engine.scan_project_files(self.ui.ignore_entry.get())
@@ -149,14 +150,14 @@ class GropTxtController:
         """โหลดรายการไฟล์แบบ Lazy Loading"""
         try:
             for child in self.ui.tree.get_children(parent): self.ui.tree.delete(child)
-            ignores = self.engine.get_ignores(self.ui.ignore_entry.get())
+            ignore_str = self.ui.ignore_entry.get()
             items = sorted(os.listdir(path))
             for i in items:
                 full = os.path.join(path, i)
                 is_dir = os.path.isdir(full)
-                if i.startswith(".") and i != ".git": continue
+                if i.startswith(".") and i != ".git" and i != ".gitignore": continue
                 
-                if i in ignores:
+                if self.engine.is_path_ignored(full, ignore_str):
                     self.ui.tree.insert(parent, "end", text=f"🚫 {i} (ข้าม)", values=(full,), tags=("ignored",))
                 else:
                     icon = "📂" if is_dir else "📄"
@@ -201,19 +202,20 @@ class GropTxtController:
         if not values: return
         
         path = values[0]
+        ignore_str = self.ui.ignore_entry.get()
         if os.path.isdir(path):
             # สแกนไฟล์จริงในโฟลเดอร์
-            ignores = self.engine.get_ignores(self.ui.ignore_entry.get())
             ext_str = self.ui.ext_entry.get()
             exts = [x.strip().lower() if x.strip().startswith(".") else "." + x.strip().lower() 
                    for x in ext_str.split(",") if x.strip()]
             
             for root, dirs, files in os.walk(path):
-                dirs[:] = [d for d in dirs if d not in ignores and not d.startswith('.')]
+                dirs[:] = [d for d in dirs if not self.engine.is_path_ignored(os.path.join(root, d), ignore_str)]
                 has_matching_file = False
                 for f in files:
-                    if any(f.lower().endswith(e) for e in exts) and f not in ignores:
-                        self.engine.selected_paths.add(os.path.join(root, f))
+                    full_f = os.path.join(root, f)
+                    if any(f.lower().endswith(e) for e in exts) and not self.engine.is_path_ignored(full_f, ignore_str):
+                        self.engine.selected_paths.add(full_f)
                         has_matching_file = True
                 
                 if has_matching_file:
@@ -250,19 +252,20 @@ class GropTxtController:
         if not self.engine.project_root: return
         self.engine.selected_paths.clear()
         
-        ignores = self.engine.get_ignores(self.ui.ignore_entry.get())
+        ignore_str = self.ui.ignore_entry.get()
         ext_str = self.ui.ext_entry.get()
         exts = [x.strip().lower() if x.strip().startswith(".") else "." + x.strip().lower() 
                for x in ext_str.split(",") if x.strip()]
         
         for root, dirs, files in os.walk(self.engine.project_root):
-            dirs[:] = [d for d in dirs if d not in ignores and not d.startswith('.')]
+            dirs[:] = [d for d in dirs if not self.engine.is_path_ignored(os.path.join(root, d), ignore_str)]
             
             # ตรวจสอบว่ามีไฟล์ที่ตรงตาม Extension ในโฟลเดอร์นี้หรือไม่
             has_matching_file = False
             for f in files:
-                if any(f.lower().endswith(e) for e in exts) and f not in ignores:
-                    self.engine.selected_paths.add(os.path.join(root, f))
+                full_f = os.path.join(root, f)
+                if any(f.lower().endswith(e) for e in exts) and not self.engine.is_path_ignored(full_f, ignore_str):
+                    self.engine.selected_paths.add(full_f)
                     has_matching_file = True
             
             # เพิ่มโฟลเดอร์เข้า selection เฉพาะถ้ามีไฟล์ที่ตรงเงื่อนไข (เพื่อให้ UI แสดงเครื่องหมายถูก)
@@ -309,7 +312,7 @@ class GropTxtController:
         if not matches and not is_ignored: new_tags.append("dimmed")
         if path in self.engine.selected_paths and not is_ignored: new_tags.append("checked")
         
-        self.ui.tree.item(node, text=f"{prefix}{icon} {base}" + (" (Ignored)" if is_ignored else ""), tags=tuple(new_tags))
+        self.ui.tree.item(node, text=f"{prefix}{icon} {base}" + (" (ข้าม)" if is_ignored else ""), tags=tuple(new_tags))
         
         if self.ui.tree.item(node, "open"):
             for child in self.ui.tree.get_children(node):
