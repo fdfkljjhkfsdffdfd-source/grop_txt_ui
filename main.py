@@ -56,7 +56,8 @@ class GropTxtController:
     def _update_status_bar(self):
         """อัปเดต Status Bar"""
         root_name = os.path.basename(self.engine.project_root) if self.engine.project_root else "None"
-        self.ui.status_label.config(text=f"Project: {root_name} | Profile: {self.engine.current_profile}")
+        self.ui.status_label.config(text=root_name)
+        self.ui.profile_label.config(text=self.engine.current_profile)
         
         files_count = sum(1 for p in self.engine.selected_paths if os.path.isfile(p))
         self.ui.selection_label.config(text=f"Selected: {files_count} files")
@@ -312,7 +313,7 @@ class GropTxtController:
         def update_progress(current, total):
             percent = (current / total) * 100
             self.root.after(0, lambda: self.ui.progress.config(value=percent))
-            self.root.after(0, lambda: self.ui.status_label.config(text=f"Merging... {current}/{total} files"))
+            self.root.after(0, lambda: self.ui.merge_status.config(text=f"Merging... {current}/{total} files"))
 
         def task():
             self.ui.log("🚀 Starting Merge Process...")
@@ -328,6 +329,7 @@ class GropTxtController:
                 self.ui.log(f"✅ Success! Merged {count} files into {os.path.basename(path)}")
                 self.root.after(0, self.update_history_ui)
                 self.root.after(0, lambda: self.ui.progress.config(value=100))
+                self.root.after(0, lambda: self.ui.merge_status.config(text="Merge Complete!"))
                 self.root.after(0, self._update_status_bar)
                 
                 if messagebox.askyesno("Success", f"Merged {count} files.\nOpen output file?"):

@@ -32,13 +32,21 @@ class ToolTip:
             tw.destroy()
 
 class GropTxtUI:
-    """ส่วนจัดการหน้าจอ (View)"""
+    """ส่วนจัดการหน้าจอ (View) - PRO STUDIO DESIGN"""
     def __init__(self, root, controller):
         self.root = root
         self.controller = controller
-        self.root.title("GROP_TXT Pro Studio v2.6.1")
-        self.root.geometry("1300x900")
+        self.root.title("GROP_TXT PRO STUDIO")
+        self.root.geometry("1400x950")
         self.root.configure(bg="#0f172a")
+        
+        # Colors
+        self.CLR_BG = "#0f172a"
+        self.CLR_SIDEBAR = "#1e293b"
+        self.CLR_ACCENT = "#10b981"
+        self.CLR_BORDER = "#334155"
+        self.CLR_TEXT = "#f8fafc"
+        self.CLR_MUTED = "#94a3b8"
         
         self._setup_styles()
         self._build_ui()
@@ -46,226 +54,291 @@ class GropTxtUI:
     def _setup_styles(self):
         style = ttk.Style()
         style.theme_use('clam')
-        style.configure("Treeview", background="#1e293b", foreground="#cbd5e1", fieldbackground="#1e293b", font=("Segoe UI", 10), borderwidth=0)
-        style.map("Treeview", background=[('selected', '#334155')], foreground=[('selected', '#38bdf8')])
-        style.configure("TNotebook", background="#0f172a", borderwidth=0)
-        style.configure("TNotebook.Tab", padding=[20, 8], background="#1e293b", foreground="#94a3b8", font=("Segoe UI", 10))
-        style.map("TNotebook.Tab", background=[('selected', '#38bdf8')], foreground=[('selected', '#0f172a')])
-        style.configure("TProgressbar", thickness=10, background="#10b981", troughcolor="#1e293b", borderwidth=0)
+        
+        # Treeview
+        style.configure("Treeview", 
+                        background=self.CLR_SIDEBAR, 
+                        foreground="#cbd5e1", 
+                        fieldbackground=self.CLR_SIDEBAR, 
+                        font=("Segoe UI", 10), 
+                        borderwidth=0,
+                        rowheight=32)
+        style.map("Treeview", 
+                  background=[('selected', "#334155")], 
+                  foreground=[('selected', self.CLR_ACCENT)])
+        style.configure("Treeview.Heading", 
+                        background="#334155", 
+                        foreground=self.CLR_MUTED, 
+                        font=("Segoe UI", 9, "bold"),
+                        borderwidth=0)
+
+        # Notebook
+        style.configure("TNotebook", background=self.CLR_BG, borderwidth=0)
+        style.configure("TNotebook.Tab", 
+                        padding=[24, 10], 
+                        background=self.CLR_SIDEBAR, 
+                        foreground=self.CLR_MUTED, 
+                        font=("Segoe UI", 10, "bold"),
+                        borderwidth=0)
+        style.map("TNotebook.Tab", 
+                  background=[('selected', self.CLR_BG)], 
+                  foreground=[('selected', self.CLR_ACCENT)])
+
+        # Progressbar
+        style.configure("TProgressbar", 
+                        thickness=10, 
+                        background=self.CLR_ACCENT, 
+                        troughcolor=self.CLR_BORDER, 
+                        borderwidth=0)
+        
+        # Scrollbar
+        style.configure("Vertical.TScrollbar", background=self.CLR_BORDER, troughcolor=self.CLR_SIDEBAR, borderwidth=0, arrowsize=12)
 
     def _build_ui(self):
-        # Header
-        header = tk.Frame(self.root, bg="#0f172a", height=60)
-        header.pack(fill="x")
-        tk.Label(header, text="GROP_TXT PRO STUDIO", bg="#0f172a", fg="#38bdf8", font=("Segoe UI", 20, "bold")).pack(side="left", padx=20, pady=10)
+        # 1. Header
+        self.header = tk.Frame(self.root, bg=self.CLR_SIDEBAR, height=64, bd=0, highlightthickness=1, highlightbackground=self.CLR_BORDER)
+        self.header.pack(side="top", fill="x")
+        self.header.pack_propagate(False)
         
-        # Status Bar at the bottom
-        self.status_bar = tk.Frame(self.root, bg="#1e293b", height=25)
-        self.status_bar.pack(side="bottom", fill="x")
-        self.status_label = tk.Label(self.status_bar, text="Ready", bg="#1e293b", fg="#94a3b8", font=("Segoe UI", 9))
-        self.status_label.pack(side="left", padx=10)
-        self.selection_label = tk.Label(self.status_bar, text="Selected: 0 files", bg="#1e293b", fg="#38bdf8", font=("Segoe UI", 9, "bold"))
-        self.selection_label.pack(side="right", padx=10)
+        logo_frame = tk.Frame(self.header, bg=self.CLR_SIDEBAR)
+        logo_frame.pack(side="left", padx=24)
+        
+        tk.Label(logo_frame, text="GROP_TXT", bg=self.CLR_SIDEBAR, fg=self.CLR_TEXT, font=("Segoe UI", 16, "bold")).pack(side="left")
+        tk.Label(logo_frame, text="PRO STUDIO", bg=self.CLR_SIDEBAR, fg=self.CLR_ACCENT, font=("Segoe UI", 16, "bold")).pack(side="left", padx=(5, 0))
+        
+        header_right = tk.Frame(self.header, bg=self.CLR_SIDEBAR)
+        header_right.pack(side="right", padx=24)
+        
+        self.sys_status = tk.Label(header_right, text="● System Online", bg=self.CLR_SIDEBAR, fg=self.CLR_ACCENT, font=("Segoe UI", 9))
+        self.sys_status.pack(side="left", padx=20)
+        
+        # 2. Footer
+        self.footer = tk.Frame(self.root, bg=self.CLR_SIDEBAR, height=32, bd=0, highlightthickness=1, highlightbackground=self.CLR_BORDER)
+        self.footer.pack(side="bottom", fill="x")
+        self.footer.pack_propagate(False)
+        self._build_footer()
 
-        # Tabs
-        self.notebook = ttk.Notebook(self.root)
-        self.notebook.pack(fill="both", expand=True, padx=15, pady=(5, 0))
-
+        # 3. Body (Sidebar + Main)
+        self.body = tk.Frame(self.root, bg=self.CLR_BG)
+        self.body.pack(fill="both", expand=True)
+        
+        # Sidebar
+        self.sidebar = tk.Frame(self.body, bg=self.CLR_SIDEBAR, width=300, bd=0, highlightthickness=1, highlightbackground=self.CLR_BORDER)
+        self.sidebar.pack(side="left", fill="y")
+        self.sidebar.pack_propagate(False)
+        self._build_sidebar()
+        
+        # Main Content
+        self.main_content = tk.Frame(self.body, bg=self.CLR_BG)
+        self.main_content.pack(side="left", fill="both", expand=True)
+        
+        self.notebook = ttk.Notebook(self.main_content)
+        self.notebook.pack(fill="both", expand=True)
+        
         # Tab 1: Explorer
-        self.tab_explorer = tk.Frame(self.notebook, bg="#0f172a")
-        self.notebook.add(self.tab_explorer, text=" 📂 Explorer ")
+        self.tab_explorer = tk.Frame(self.notebook, bg=self.CLR_BG)
+        self.notebook.add(self.tab_explorer, text=" Explorer ")
         self._build_explorer_tab()
-
+        
         # Tab 2: Project Map
-        self.tab_map = tk.Frame(self.notebook, bg="#0f172a")
-        self.notebook.add(self.tab_map, text=" 🗺️ Project Map ")
+        self.tab_map = tk.Frame(self.notebook, bg=self.CLR_BG)
+        self.notebook.add(self.tab_map, text=" Project Map ")
         self._build_map_tab()
-
+        
         # Tab 3: Smart Update
-        self.tab_update = tk.Frame(self.notebook, bg="#0f172a")
-        self.notebook.add(self.tab_update, text=" 🛠️ Smart Update ")
+        self.tab_update = tk.Frame(self.notebook, bg=self.CLR_BG)
+        self.notebook.add(self.tab_update, text=" Smart Update ")
         self._build_update_tab()
-
+        
         # Tab 4: History
-        self.tab_history = tk.Frame(self.notebook, bg="#0f172a")
-        self.notebook.add(self.tab_history, text=" 🕒 History ")
+        self.tab_history = tk.Frame(self.notebook, bg=self.CLR_BG)
+        self.notebook.add(self.tab_history, text=" History ")
         self._build_history_tab()
 
-    def _build_explorer_tab(self):
-        paned = tk.PanedWindow(self.tab_explorer, orient=tk.HORIZONTAL, bg="#0f172a", bd=0, sashwidth=4)
-        paned.pack(fill="both", expand=True)
-
-        # Left: Tree
-        left_frame = tk.Frame(paned, bg="#1e293b")
-        paned.add(left_frame, width=450)
-
-        ctrl_bar = tk.Frame(left_frame, bg="#334155", pady=5)
-        ctrl_bar.pack(fill="x")
+    def _build_sidebar(self):
+        # Project Selector Section
+        proj_sec = tk.Frame(self.sidebar, bg=self.CLR_SIDEBAR, padx=20, pady=20)
+        proj_sec.pack(fill="x")
+        
+        tk.Label(proj_sec, text="PROJECT ENVIRONMENT", bg=self.CLR_SIDEBAR, fg=self.CLR_MUTED, font=("Segoe UI", 8, "bold")).pack(anchor="w", pady=(0, 8))
         
         self.prof_var = tk.StringVar()
-        self.prof_cb = ttk.Combobox(ctrl_bar, textvariable=self.prof_var, state="readonly", width=15)
-        self.prof_cb.pack(side="left", padx=10)
+        self.prof_cb = ttk.Combobox(proj_sec, textvariable=self.prof_var, state="readonly")
+        self.prof_cb.pack(fill="x", pady=(0, 12))
         
-        btn_save = tk.Button(ctrl_bar, text="💾 Save", command=self.controller.save_new_profile, bg="#38bdf8", fg="#0f172a", font=("Arial", 8, "bold"), bd=0, padx=8)
-        btn_save.pack(side="left", padx=2)
-        self._add_hover(btn_save, "#7dd3fc", "#38bdf8")
-        ToolTip(btn_save, "บันทึกโปรไฟล์ปัจจุบัน (Save Profile)")
-
-        btn_del = tk.Button(ctrl_bar, text="🗑️ Del", command=self.controller.delete_profile, bg="#ef4444", fg="white", font=("Arial", 8, "bold"), bd=0, padx=8)
-        btn_del.pack(side="left", padx=2)
-        self._add_hover(btn_del, "#f87171", "#ef4444")
-        ToolTip(btn_del, "ลบโปรไฟล์ที่เลือก (Delete Profile)")
-
-        btn_open = tk.Button(ctrl_bar, text="📁 Open", command=self.controller.open_project, bg="#10b981", fg="white", font=("Arial", 8, "bold"), bd=0, padx=8)
-        btn_open.pack(side="right", padx=10)
-        self._add_hover(btn_open, "#34d399", "#10b981")
-        ToolTip(btn_open, "เปิดโฟลเดอร์โปรเจกต์ (Open Project Folder)")
-
-        self.btn_recent = tk.Button(ctrl_bar, text="🕒", command=self.controller.show_recent_menu, bg="#334155", fg="white", font=("Arial", 8, "bold"), bd=0, padx=8)
-        self.btn_recent.pack(side="right", padx=2)
-        self._add_hover(self.btn_recent, "#475569", "#334155")
-        ToolTip(self.btn_recent, "โปรเจกต์ล่าสุด (Recent Projects)")
-
-        # Search Bar for Tree
-        search_frame = tk.Frame(left_frame, bg="#1e293b", pady=5)
-        search_frame.pack(fill="x")
-        tk.Label(search_frame, text=" 🔍 ", bg="#1e293b", fg="#94a3b8").pack(side="left", padx=(5,0))
-        self.tree_search = tk.Entry(search_frame, bg="#0f172a", fg="white", bd=0, font=("Segoe UI", 10))
-        self.tree_search.pack(side="left", fill="x", expand=True, padx=5)
+        btn_frame = tk.Frame(proj_sec, bg=self.CLR_SIDEBAR)
+        btn_frame.pack(fill="x")
+        
+        self.btn_save = tk.Button(btn_frame, text="SAVE", command=self.controller.save_new_profile, bg=self.CLR_ACCENT, fg=self.CLR_BG, font=("Segoe UI", 9, "bold"), bd=0, pady=8)
+        self.btn_save.pack(side="left", fill="x", expand=True, padx=(0, 4))
+        self._add_hover(self.btn_save, "#34d399", self.CLR_ACCENT)
+        
+        self.btn_del = tk.Button(btn_frame, text="DELETE", command=self.controller.delete_profile, bg="#ef4444", fg=self.CLR_TEXT, font=("Segoe UI", 9, "bold"), bd=0, pady=8)
+        self.btn_del.pack(side="left", fill="x", expand=True, padx=(4, 0))
+        self._add_hover(self.btn_del, "#f87171", "#ef4444")
+        
+        # Search & Tree Section
+        tree_sec = tk.Frame(self.sidebar, bg=self.CLR_SIDEBAR, padx=10)
+        tree_sec.pack(fill="both", expand=True)
+        
+        # Search
+        search_frame = tk.Frame(tree_sec, bg=self.CLR_BG, padx=10, pady=6)
+        search_frame.pack(fill="x", pady=(0, 10))
+        tk.Label(search_frame, text="🔍", bg=self.CLR_BG, fg=self.CLR_MUTED).pack(side="left")
+        self.tree_search = tk.Entry(search_frame, bg=self.CLR_BG, fg=self.CLR_TEXT, bd=0, font=("Segoe UI", 10), insertbackground="white")
+        self.tree_search.pack(side="left", fill="x", expand=True, padx=6)
         self.tree_search.bind("<KeyRelease>", lambda e: self.controller.filter_tree())
-
-        self.tree = ttk.Treeview(left_frame, selectmode="none")
+        
+        # Tree
+        self.tree = ttk.Treeview(tree_sec, selectmode="none", show="tree")
         self.tree.pack(fill="both", expand=True)
-        self.tree.heading("#0", text=" Project Files (✓ = Selected)", anchor="w")
         
-        # Tags
-        self.tree.tag_configure("checked", background="#064e3b", foreground="#10b981", font=("Segoe UI", 10, "bold"))
+        # Tags for tree
+        self.tree.tag_configure("checked", foreground=self.CLR_ACCENT, font=("Segoe UI", 10, "bold"))
         self.tree.tag_configure("folder", foreground="#eab308")
-        self.tree.tag_configure("partial", foreground="#38bdf8")
-        self.tree.tag_configure("dimmed", foreground="#475569")
         self.tree.tag_configure("ignored", foreground="#475569", font=("Segoe UI", 9, "italic"))
+        self.tree.tag_configure("dimmed", foreground="#334155")
 
-        # Right: Config & Log
-        right_frame = tk.Frame(paned, bg="#0f172a", padx=10)
-        paned.add(right_frame)
+        # Open Folder Button at bottom of sidebar
+        self.btn_open = tk.Button(self.sidebar, text="📁 OPEN PROJECT FOLDER", command=self.controller.open_project, bg=self.CLR_BORDER, fg=self.CLR_TEXT, font=("Segoe UI", 9, "bold"), bd=0, pady=12)
+        self.btn_open.pack(side="bottom", fill="x", padx=20, pady=20)
+        self._add_hover(self.btn_open, "#475569", self.CLR_BORDER)
 
-        # Batch Selection
-        batch_frame = tk.LabelFrame(right_frame, text=" Batch Selection & Config ", bg="#0f172a", fg="#38bdf8", font=("Arial", 10, "bold"), padx=15, pady=10)
-        batch_frame.pack(fill="x", pady=5)
+        self.btn_recent = tk.Button(self.sidebar, text="🕒 RECENT PROJECTS", command=self.controller.show_recent_menu, bg=self.CLR_SIDEBAR, fg=self.CLR_MUTED, font=("Segoe UI", 8), bd=0, pady=5)
+        self.btn_recent.pack(side="bottom", fill="x", padx=20)
+        self._add_hover(self.btn_recent, self.CLR_BG, self.CLR_SIDEBAR)
 
-        tk.Label(batch_frame, text="Paste File Paths (one per line):", bg="#0f172a", fg="#38bdf8", font=("Arial", 9, "bold")).pack(anchor="w")
-        self.batch_text = scrolledtext.ScrolledText(batch_frame, height=5, bg="#1e293b", fg="#10b981", font=("Consolas", 10), bd=0)
-        self.batch_text.pack(fill="x", pady=5)
+    def _build_explorer_tab(self):
+        container = tk.Frame(self.tab_explorer, bg=self.CLR_BG, padx=30, pady=30)
+        container.pack(fill="both", expand=True)
         
-        batch_btn_frame = tk.Frame(batch_frame, bg="#0f172a")
-        batch_btn_frame.pack(fill="x")
-        btn_apply = tk.Button(batch_btn_frame, text="✨ Apply Batch", command=self.controller.apply_batch, bg="#38bdf8", fg="#0f172a", font=("Arial", 9, "bold"), bd=0, padx=10)
-        btn_apply.pack(side="left")
-        self._add_hover(btn_apply, "#7dd3fc", "#38bdf8")
-        ToolTip(btn_apply, "เลือกไฟล์ตามรายการ Path ที่ระบุ (Apply selection from list)")
-
-        btn_clear_batch = tk.Button(batch_btn_frame, text="🧹 Clear", command=lambda: self.batch_text.delete('1.0', tk.END), bg="#334155", fg="white", font=("Arial", 9), bd=0, padx=10)
-        btn_clear_batch.pack(side="left", padx=10)
-        self._add_hover(btn_clear_batch, "#475569", "#334155")
-
-        # Config Area
-        cfg_grid = tk.Frame(batch_frame, bg="#0f172a")
-        cfg_grid.pack(fill="x", pady=10)
-
-        tk.Label(cfg_grid, text="Extensions:", bg="#0f172a", fg="#94a3b8").grid(row=0, column=0, sticky="w")
-        self.ext_entry = tk.Entry(cfg_grid, bg="#1e293b", fg="white", bd=0, font=("Consolas", 10))
-        self.ext_entry.grid(row=0, column=1, sticky="ew", padx=(10, 0))
+        # 1. Batch Selection & Config
+        batch_sec = tk.LabelFrame(container, text=" BATCH SELECTION & CONFIG ", bg=self.CLR_BG, fg=self.CLR_MUTED, font=("Segoe UI", 9, "bold"), padx=20, pady=20, bd=1, relief="solid", highlightthickness=1, highlightbackground=self.CLR_BORDER)
+        batch_sec.pack(fill="x", pady=(0, 25))
+        
+        header_row = tk.Frame(batch_sec, bg=self.CLR_BG)
+        header_row.pack(fill="x", pady=(0, 15))
+        
+        tk.Label(header_row, text="PASTE FILE PATHS (ONE PER LINE):", bg=self.CLR_BG, fg=self.CLR_MUTED, font=("Segoe UI", 8, "bold")).pack(side="left")
+        
+        btn_row = tk.Frame(header_row, bg=self.CLR_BG)
+        btn_row.pack(side="right")
+        
+        self.btn_apply = tk.Button(btn_row, text="APPLY BATCH", command=self.controller.apply_batch, bg=self.CLR_ACCENT, fg=self.CLR_BG, font=("Segoe UI", 8, "bold"), bd=0, padx=15, pady=6)
+        self.btn_apply.pack(side="left", padx=5)
+        self._add_hover(self.btn_apply, "#34d399", self.CLR_ACCENT)
+        
+        self.btn_clear_batch = tk.Button(btn_row, text="CLEAR", command=lambda: self.batch_text.delete('1.0', tk.END), bg=self.CLR_BORDER, fg=self.CLR_TEXT, font=("Segoe UI", 8, "bold"), bd=0, padx=15, pady=6)
+        self.btn_clear_batch.pack(side="left", padx=5)
+        self._add_hover(self.btn_clear_batch, "#475569", self.CLR_BORDER)
+        
+        self.batch_text = scrolledtext.ScrolledText(batch_sec, height=6, bg=self.CLR_SIDEBAR, fg=self.CLR_ACCENT, font=("JetBrains Mono", 10), bd=0, highlightthickness=1, highlightbackground=self.CLR_BORDER)
+        self.batch_text.pack(fill="x", pady=(0, 20))
+        
+        # Config row
+        config_row = tk.Frame(batch_sec, bg=self.CLR_BG)
+        config_row.pack(fill="x")
+        
+        # Extensions
+        ext_frame = tk.Frame(config_row, bg=self.CLR_BG)
+        ext_frame.pack(side="left", fill="x", expand=True)
+        tk.Label(ext_frame, text="TARGET EXTENSIONS", bg=self.CLR_BG, fg=self.CLR_MUTED, font=("Segoe UI", 8, "bold")).pack(anchor="w")
+        self.ext_entry = tk.Entry(ext_frame, bg=self.CLR_SIDEBAR, fg=self.CLR_TEXT, bd=0, font=("JetBrains Mono", 10), highlightthickness=1, highlightbackground=self.CLR_BORDER)
+        self.ext_entry.pack(fill="x", pady=(6, 0), padx=(0, 15))
         self.ext_entry.insert(0, ".py, .js, .tsx, .html, .css, .md, .txt")
-
-        tk.Label(cfg_grid, text="Ignore List:", bg="#0f172a", fg="#94a3b8").grid(row=1, column=0, sticky="w", pady=(5,0))
-        self.ignore_entry = tk.Entry(cfg_grid, bg="#1e293b", fg="#f43f5e", bd=0, font=("Consolas", 10))
-        self.ignore_entry.grid(row=1, column=1, sticky="ew", padx=(10, 0), pady=(5,0))
-        cfg_grid.columnconfigure(1, weight=1)
-
-        # Selection Preview
-        preview_frame = tk.LabelFrame(right_frame, text=" Current Selection Preview ", bg="#0f172a", fg="#10b981", font=("Arial", 10, "bold"), padx=15, pady=10)
-        preview_frame.pack(fill="x", pady=5)
         
-        btn_sel_all = tk.Button(preview_frame, text="✅ Select All", command=self.controller.select_all, bg="#10b981", fg="white", font=("Arial", 8, "bold"), bd=0, padx=8)
-        btn_sel_all.pack(side="left", padx=2)
-        self._add_hover(btn_sel_all, "#34d399", "#10b981")
-
-        btn_desel_all = tk.Button(preview_frame, text="❌ Deselect All", command=self.controller.deselect_all, bg="#ef4444", fg="white", font=("Arial", 8, "bold"), bd=0, padx=8)
-        btn_desel_all.pack(side="left", padx=2)
-        self._add_hover(btn_desel_all, "#f87171", "#ef4444")
-
-        btn_clear_all = tk.Button(preview_frame, text="🗑️ Clear All", command=self.controller.clear_selection, bg="#64748b", fg="white", font=("Arial", 8, "bold"), bd=0, padx=8)
-        btn_clear_all.pack(side="right")
-        self._add_hover(btn_clear_all, "#94a3b8", "#64748b")
+        # Ignore
+        ign_frame = tk.Frame(config_row, bg=self.CLR_BG)
+        ign_frame.pack(side="left", fill="x", expand=True)
+        tk.Label(ign_frame, text="IGNORE LIST", bg=self.CLR_BG, fg="#ef4444", font=("Segoe UI", 8, "bold")).pack(anchor="w")
+        self.ignore_entry = tk.Entry(ign_frame, bg=self.CLR_SIDEBAR, fg="#ef4444", bd=0, font=("JetBrains Mono", 10), highlightthickness=1, highlightbackground=self.CLR_BORDER)
+        self.ignore_entry.pack(fill="x", pady=(6, 0))
         
-        self.selection_display = scrolledtext.ScrolledText(preview_frame, height=6, bg="#020617", fg="#38bdf8", font=("Consolas", 9), bd=0)
-        self.selection_display.pack(fill="x", pady=5)
+        # 2. Selection Preview
+        preview_sec = tk.LabelFrame(container, text=" CURRENT SELECTION PREVIEW ", bg=self.CLR_BG, fg=self.CLR_MUTED, font=("Segoe UI", 9, "bold"), padx=0, pady=0, bd=1, relief="solid")
+        preview_sec.pack(fill="x", pady=(0, 25))
+        
+        preview_header = tk.Frame(preview_sec, bg=self.CLR_SIDEBAR, padx=20, pady=10)
+        preview_header.pack(fill="x")
+        
+        tk.Label(preview_header, text="FILES SELECTED", bg=self.CLR_SIDEBAR, fg=self.CLR_MUTED, font=("Segoe UI", 8, "bold")).pack(side="left")
+        
+        prev_btn_row = tk.Frame(preview_header, bg=self.CLR_SIDEBAR)
+        prev_btn_row.pack(side="right")
+        
+        tk.Button(prev_btn_row, text="SELECT ALL", command=self.controller.select_all, bg=self.CLR_SIDEBAR, fg=self.CLR_ACCENT, font=("Segoe UI", 8, "bold"), bd=0, cursor="hand2").pack(side="left", padx=10)
+        tk.Button(prev_btn_row, text="DESELECT ALL", command=self.controller.deselect_all, bg=self.CLR_SIDEBAR, fg="#ef4444", font=("Segoe UI", 8, "bold"), bd=0, cursor="hand2").pack(side="left", padx=10)
+        
+        self.selection_display = scrolledtext.ScrolledText(preview_sec, height=8, bg="#020617", fg=self.CLR_ACCENT, font=("JetBrains Mono", 9), bd=0, padx=20, pady=15)
+        self.selection_display.pack(fill="x")
         self.selection_display.config(state="disabled")
-
-        # Progress Bar and Merge Button
-        action_frame = tk.Frame(right_frame, bg="#0f172a")
-        action_frame.pack(fill="x", pady=10)
-
-        self.progress = ttk.Progressbar(action_frame, orient="horizontal", mode="determinate")
-        self.progress.pack(fill="x", pady=(0, 10))
-
-        btn_merge = tk.Button(action_frame, text="⚡ SYNC & MERGE (ULTRA STREAM)", command=self.controller.run_merge, bg="#10b981", fg="white", font=("Arial", 12, "bold"), bd=0, pady=12)
-        btn_merge.pack(fill="x")
-        self._add_hover(btn_merge, "#34d399", "#10b981")
-        ToolTip(btn_merge, "รวมไฟล์ที่เลือกทั้งหมดเข้าด้วยกัน (Merge all selected files)")
-
-        log_header = tk.Frame(right_frame, bg="#0f172a")
-        log_header.pack(fill="x", pady=(5, 0))
-        tk.Label(log_header, text="Activity Log:", bg="#0f172a", fg="#94a3b8", font=("Arial", 9)).pack(side="left")
-        btn_clear_log = tk.Button(log_header, text="🗑️ Clear Log", command=lambda: self.log_area.delete('1.0', tk.END), bg="#0f172a", fg="#475569", font=("Arial", 8), bd=0, padx=5)
-        btn_clear_log.pack(side="right")
-        self._add_hover(btn_clear_log, "#1e293b", "#0f172a")
-
-        self.log_area = scrolledtext.ScrolledText(right_frame, bg="#000", fg="#10b981", font=("Consolas", 9), height=10)
-        self.log_area.pack(fill="both", expand=True, pady=5)
+        
+        # 3. Merge Button
+        self.merge_status = tk.Label(container, text="Ready to Merge", bg=self.CLR_BG, fg=self.CLR_MUTED, font=("Segoe UI", 9))
+        self.merge_status.pack(anchor="w", pady=(0, 5))
+        
+        self.progress = ttk.Progressbar(container, orient="horizontal", mode="determinate")
+        self.progress.pack(fill="x", pady=(0, 15))
+        
+        self.btn_merge = tk.Button(container, text="SYNC & MERGE (ULTRA STREAM)", command=self.controller.run_merge, bg=self.CLR_ACCENT, fg=self.CLR_BG, font=("Segoe UI", 12, "bold"), bd=0, pady=18)
+        self.btn_merge.pack(fill="x", pady=(0, 25))
+        self._add_hover(self.btn_merge, "#34d399", self.CLR_ACCENT)
+        
+        # 4. Activity Log
+        log_sec = tk.Frame(container, bg=self.CLR_BG, bd=1, relief="solid", highlightthickness=1, highlightbackground=self.CLR_BORDER)
+        log_sec.pack(fill="both", expand=True)
+        
+        log_header = tk.Frame(log_sec, bg=self.CLR_SIDEBAR, padx=20, pady=10)
+        log_header.pack(fill="x")
+        
+        tk.Label(log_header, text="ACTIVITY LOG", bg=self.CLR_SIDEBAR, fg=self.CLR_MUTED, font=("Segoe UI", 8, "bold")).pack(side="left")
+        tk.Button(log_header, text="CLEAR LOG", command=lambda: self.log_area.delete('1.0', tk.END), bg=self.CLR_SIDEBAR, fg=self.CLR_MUTED, font=("Segoe UI", 8), bd=0, cursor="hand2").pack(side="right")
+        
+        self.log_area = scrolledtext.ScrolledText(log_sec, bg="#000000", fg=self.CLR_ACCENT, font=("JetBrains Mono", 9), bd=0, padx=20, pady=15)
+        self.log_area.pack(fill="both", expand=True)
 
     def _build_map_tab(self):
-        container = tk.Frame(self.tab_map, bg="#1e293b", padx=20, pady=20)
-        container.pack(fill="both", expand=True, padx=20, pady=20)
+        container = tk.Frame(self.tab_map, bg=self.CLR_BG, padx=30, pady=30)
+        container.pack(fill="both", expand=True)
         
-        ctrl = tk.Frame(container, bg="#1e293b")
-        ctrl.pack(fill="x", pady=(0, 15))
+        ctrl = tk.Frame(container, bg=self.CLR_BG)
+        ctrl.pack(fill="x", pady=(0, 20))
         
-        tk.Label(ctrl, text="🔍 Filter Paths:", bg="#1e293b", fg="#38bdf8", font=("Arial", 10, "bold")).pack(side="left")
-        self.map_search = tk.Entry(ctrl, bg="#0f172a", fg="white", bd=0, font=("Consolas", 11), width=40)
-        self.map_search.pack(side="left", padx=15)
+        tk.Label(ctrl, text="🔍 FILTER PATHS:", bg=self.CLR_BG, fg=self.CLR_ACCENT, font=("Segoe UI", 10, "bold")).pack(side="left")
+        self.map_search = tk.Entry(ctrl, bg=self.CLR_SIDEBAR, fg=self.CLR_TEXT, bd=0, font=("JetBrains Mono", 11), width=40, highlightthickness=1, highlightbackground=self.CLR_BORDER)
+        self.map_search.pack(side="left", padx=20)
         self.map_search.bind("<KeyRelease>", lambda e: self.controller.filter_map())
         
-        tk.Button(ctrl, text="📋 Copy All", command=self.controller.copy_map_paths, bg="#10b981", fg="white", font=("Arial", 9, "bold"), bd=0, padx=15).pack(side="right")
+        tk.Button(ctrl, text="📋 COPY ALL", command=self.controller.copy_map_paths, bg=self.CLR_ACCENT, fg=self.CLR_BG, font=("Segoe UI", 9, "bold"), bd=0, padx=20, pady=8).pack(side="right")
 
-        self.map_display = scrolledtext.ScrolledText(container, bg="#0f172a", fg="#cbd5e1", font=("Consolas", 10), bd=0, padx=10, pady=10)
+        self.map_display = scrolledtext.ScrolledText(container, bg=self.CLR_SIDEBAR, fg="#cbd5e1", font=("JetBrains Mono", 10), bd=0, padx=20, pady=20, highlightthickness=1, highlightbackground=self.CLR_BORDER)
         self.map_display.pack(fill="both", expand=True)
 
     def _build_update_tab(self):
-        container = tk.Frame(self.tab_update, bg="#1e293b", padx=20, pady=20)
-        container.pack(fill="both", expand=True, padx=20, pady=20)
+        container = tk.Frame(self.tab_update, bg=self.CLR_BG, padx=30, pady=30)
+        container.pack(fill="both", expand=True)
         
-        header = tk.Frame(container, bg="#1e293b")
-        header.pack(fill="x", pady=(0, 15))
+        header = tk.Frame(container, bg=self.CLR_BG)
+        header.pack(fill="x", pady=(0, 20))
         
-        tk.Button(header, text="📂 Select Source Files", command=self.controller.select_sources, bg="#38bdf8", fg="#0f172a", font=("Arial", 9, "bold"), bd=0, padx=15, pady=5).pack(side="left")
-        tk.Button(header, text="🔄 Refresh", command=self.controller.refresh_update_matches, bg="#334155", fg="white", font=("Arial", 9), bd=0, padx=15, pady=5).pack(side="right")
+        tk.Button(header, text="📂 SELECT SOURCE FILES", command=self.controller.select_sources, bg=self.CLR_ACCENT, fg=self.CLR_BG, font=("Segoe UI", 9, "bold"), bd=0, padx=20, pady=8).pack(side="left")
+        tk.Button(header, text="🔄 REFRESH", command=self.controller.refresh_update_matches, bg=self.CLR_BORDER, fg=self.CLR_TEXT, font=("Segoe UI", 9), bd=0, padx=20, pady=8).pack(side="right")
         
         self.update_tree = ttk.Treeview(container, columns=("Source", "Target", "Status"), show="headings", height=15)
-        self.update_tree.pack(fill="both", expand=True, pady=10)
+        self.update_tree.pack(fill="both", expand=True, pady=15)
         self.update_tree.heading("Source", text="Source File")
         self.update_tree.heading("Target", text="Project Path")
         self.update_tree.heading("Status", text="Status")
         
-        self.update_tree.tag_configure("ready", foreground="#10b981")
+        self.update_tree.tag_configure("ready", foreground=self.CLR_ACCENT)
         self.update_tree.tag_configure("missing", foreground="#ef4444")
         self.update_tree.tag_configure("warning", foreground="#eab308")
 
-        tk.Button(container, text="⚡ EXECUTE SMART OVERWRITE", command=self.controller.run_overwrite, bg="#ef4444", fg="white", font=("Arial", 11, "bold"), bd=0, pady=12).pack(fill="x")
+        tk.Button(container, text="⚡ EXECUTE SMART OVERWRITE", command=self.controller.run_overwrite, bg="#ef4444", fg=self.CLR_TEXT, font=("Segoe UI", 11, "bold"), bd=0, pady=15).pack(fill="x")
 
     def _build_history_tab(self):
-        container = tk.Frame(self.tab_history, bg="#1e293b", padx=20, pady=20)
-        container.pack(fill="both", expand=True, padx=20, pady=20)
+        container = tk.Frame(self.tab_history, bg=self.CLR_BG, padx=30, pady=30)
+        container.pack(fill="both", expand=True)
         
         self.hist_tree = ttk.Treeview(container, columns=("Time", "Profile", "File"), show="headings", height=15)
         self.hist_tree.pack(fill="both", expand=True)
@@ -273,11 +346,32 @@ class GropTxtUI:
         self.hist_tree.heading("Profile", text="Profile")
         self.hist_tree.heading("File", text="Filename")
         
-        btn_frame = tk.Frame(container, bg="#1e293b", pady=15)
+        btn_frame = tk.Frame(container, bg=self.CLR_BG, pady=20)
         btn_frame.pack(fill="x")
-        tk.Button(btn_frame, text="📂 Open File", command=self.controller.open_history_file, bg="#38bdf8", fg="#0f172a", font=("Arial", 10, "bold"), bd=0, padx=20, pady=8).pack(side="left", padx=5)
-        tk.Button(btn_frame, text="🔍 Show Folder", command=self.controller.open_history_folder, bg="#64748b", fg="white", font=("Arial", 10, "bold"), bd=0, padx=20, pady=8).pack(side="left", padx=5)
-        tk.Button(btn_frame, text="🗑️ Clear History", command=self.controller.clear_history, bg="#ef4444", fg="white", font=("Arial", 10, "bold"), bd=0, padx=20, pady=8).pack(side="right", padx=5)
+        tk.Button(btn_frame, text="📂 OPEN FILE", command=self.controller.open_history_file, bg=self.CLR_ACCENT, fg=self.CLR_BG, font=("Segoe UI", 10, "bold"), bd=0, padx=25, pady=10).pack(side="left", padx=8)
+        tk.Button(btn_frame, text="🔍 SHOW FOLDER", command=self.controller.open_history_folder, bg=self.CLR_BORDER, fg=self.CLR_TEXT, font=("Segoe UI", 10, "bold"), bd=0, padx=25, pady=10).pack(side="left", padx=8)
+        tk.Button(btn_frame, text="🗑️ CLEAR HISTORY", command=self.controller.clear_history, bg="#ef4444", fg=self.CLR_TEXT, font=("Segoe UI", 10, "bold"), bd=0, padx=25, pady=10).pack(side="right", padx=8)
+
+    def _build_footer(self):
+        left_foot = tk.Frame(self.footer, bg=self.CLR_SIDEBAR)
+        left_foot.pack(side="left", padx=20)
+        
+        tk.Label(left_foot, text="Project:", bg=self.CLR_SIDEBAR, fg=self.CLR_MUTED, font=("Segoe UI", 8)).pack(side="left")
+        self.status_label = tk.Label(left_foot, text="None", bg=self.CLR_SIDEBAR, fg=self.CLR_TEXT, font=("Segoe UI", 8, "bold"))
+        self.status_label.pack(side="left", padx=(5, 20))
+        
+        tk.Label(left_foot, text="Profile:", bg=self.CLR_SIDEBAR, fg=self.CLR_MUTED, font=("Segoe UI", 8)).pack(side="left")
+        self.profile_label = tk.Label(left_foot, text="Default", bg=self.CLR_SIDEBAR, fg=self.CLR_TEXT, font=("Segoe UI", 8, "bold"))
+        self.profile_label.pack(side="left", padx=(5, 0))
+        
+        right_foot = tk.Frame(self.footer, bg=self.CLR_SIDEBAR)
+        right_foot.pack(side="right", padx=20)
+        
+        self.selection_label = tk.Label(right_foot, text="Selected: 0 files", bg=self.CLR_SIDEBAR, fg=self.CLR_ACCENT, font=("Segoe UI", 8, "bold"))
+        self.selection_label.pack(side="left", padx=20)
+        
+        tk.Label(right_foot, text="UTF-8", bg=self.CLR_SIDEBAR, fg=self.CLR_MUTED, font=("Segoe UI", 8)).pack(side="left", padx=10)
+        tk.Label(right_foot, text="v2.6.1-PRO", bg=self.CLR_SIDEBAR, fg=self.CLR_MUTED, font=("Segoe UI", 8)).pack(side="left", padx=10)
 
     def log(self, msg):
         self.log_area.insert(tk.END, f"[{datetime.now().strftime('%H:%M:%S')}] {msg}\n")
@@ -301,15 +395,14 @@ class GropTxtUI:
             files_count = sum(1 for p in sorted_paths if os.path.isfile(p))
             self.selection_display.insert(tk.END, f"Selected: {files_count} files\n" + "-"*40 + "\n")
             
-            for p in sorted_paths:
+            for i, p in enumerate(sorted_paths, 1):
                 try:
-                    # พยายามทำเป็น path สัมพัทธ์เพื่อให้ดูง่าย
                     root = self.controller.engine.project_root
                     rel = os.path.relpath(p, root) if root and p.startswith(root) else p
                 except: rel = p
                 
-                icon = "📁" if os.path.isdir(p) else "📄"
-                self.selection_display.insert(tk.END, f"{icon} {rel}\n")
+                idx = str(i).zfill(2)
+                self.selection_display.insert(tk.END, f"{idx}  {rel}\n")
             
         self.selection_display.config(state="disabled")
         self.selection_display.see(tk.END)
