@@ -36,7 +36,7 @@ class GropTxtUI:
     def __init__(self, root, controller):
         self.root = root
         self.controller = controller
-        self.root.title("GROP_TXT PRO STUDIO")
+        self.root.title("GROP_TXT โปร สตูดิโอ")
         self.root.geometry("1400x950")
         self.root.configure(bg="#0f172a")
         
@@ -104,12 +104,12 @@ class GropTxtUI:
         logo_frame.pack(side="left", padx=24)
         
         tk.Label(logo_frame, text="GROP_TXT", bg=self.CLR_SIDEBAR, fg=self.CLR_TEXT, font=("Segoe UI", 16, "bold")).pack(side="left")
-        tk.Label(logo_frame, text="PRO STUDIO", bg=self.CLR_SIDEBAR, fg=self.CLR_ACCENT, font=("Segoe UI", 16, "bold")).pack(side="left", padx=(5, 0))
+        tk.Label(logo_frame, text="โปร สตูดิโอ", bg=self.CLR_SIDEBAR, fg=self.CLR_ACCENT, font=("Segoe UI", 16, "bold")).pack(side="left", padx=(5, 0))
         
         header_right = tk.Frame(self.header, bg=self.CLR_SIDEBAR)
         header_right.pack(side="right", padx=24)
         
-        self.sys_status = tk.Label(header_right, text="● System Online", bg=self.CLR_SIDEBAR, fg=self.CLR_ACCENT, font=("Segoe UI", 9))
+        self.sys_status = tk.Label(header_right, text="● ระบบออนไลน์", bg=self.CLR_SIDEBAR, fg=self.CLR_ACCENT, font=("Segoe UI", 9))
         self.sys_status.pack(side="left", padx=20)
         
         # 2. Footer
@@ -137,22 +137,22 @@ class GropTxtUI:
         
         # Tab 1: Explorer
         self.tab_explorer = tk.Frame(self.notebook, bg=self.CLR_BG)
-        self.notebook.add(self.tab_explorer, text=" Explorer ")
+        self.notebook.add(self.tab_explorer, text=" ตัวสำรวจไฟล์ ")
         self._build_explorer_tab()
         
         # Tab 2: Project Map
         self.tab_map = tk.Frame(self.notebook, bg=self.CLR_BG)
-        self.notebook.add(self.tab_map, text=" Project Map ")
+        self.notebook.add(self.tab_map, text=" แผนผังโปรเจกต์ ")
         self._build_map_tab()
         
         # Tab 3: Smart Update
         self.tab_update = tk.Frame(self.notebook, bg=self.CLR_BG)
-        self.notebook.add(self.tab_update, text=" Smart Update ")
+        self.notebook.add(self.tab_update, text=" อัปเดตอัจฉริยะ ")
         self._build_update_tab()
         
         # Tab 4: History
         self.tab_history = tk.Frame(self.notebook, bg=self.CLR_BG)
-        self.notebook.add(self.tab_history, text=" History ")
+        self.notebook.add(self.tab_history, text=" ประวัติ ")
         self._build_history_tab()
 
     def _build_sidebar(self):
@@ -160,7 +160,7 @@ class GropTxtUI:
         proj_sec = tk.Frame(self.sidebar, bg=self.CLR_SIDEBAR, padx=20, pady=20)
         proj_sec.pack(fill="x")
         
-        tk.Label(proj_sec, text="PROJECT ENVIRONMENT", bg=self.CLR_SIDEBAR, fg=self.CLR_MUTED, font=("Segoe UI", 8, "bold")).pack(anchor="w", pady=(0, 8))
+        tk.Label(proj_sec, text="สภาพแวดล้อมโปรเจกต์", bg=self.CLR_SIDEBAR, fg=self.CLR_MUTED, font=("Segoe UI", 8, "bold")).pack(anchor="w", pady=(0, 8))
         
         self.prof_var = tk.StringVar()
         self.prof_cb = ttk.Combobox(proj_sec, textvariable=self.prof_var, state="readonly")
@@ -169,11 +169,11 @@ class GropTxtUI:
         btn_frame = tk.Frame(proj_sec, bg=self.CLR_SIDEBAR)
         btn_frame.pack(fill="x")
         
-        self.btn_save = tk.Button(btn_frame, text="SAVE", command=self.controller.save_new_profile, bg=self.CLR_ACCENT, fg=self.CLR_BG, font=("Segoe UI", 9, "bold"), bd=0, pady=8)
+        self.btn_save = tk.Button(btn_frame, text="บันทึก", command=self.controller.save_new_profile, bg=self.CLR_ACCENT, fg=self.CLR_BG, font=("Segoe UI", 9, "bold"), bd=0, pady=8)
         self.btn_save.pack(side="left", fill="x", expand=True, padx=(0, 4))
         self._add_hover(self.btn_save, "#34d399", self.CLR_ACCENT)
         
-        self.btn_del = tk.Button(btn_frame, text="DELETE", command=self.controller.delete_profile, bg="#ef4444", fg=self.CLR_TEXT, font=("Segoe UI", 9, "bold"), bd=0, pady=8)
+        self.btn_del = tk.Button(btn_frame, text="ลบ", command=self.controller.delete_profile, bg="#ef4444", fg=self.CLR_TEXT, font=("Segoe UI", 9, "bold"), bd=0, pady=8)
         self.btn_del.pack(side="left", fill="x", expand=True, padx=(4, 0))
         self._add_hover(self.btn_del, "#f87171", "#ef4444")
         
@@ -200,11 +200,11 @@ class GropTxtUI:
         self.tree.tag_configure("dimmed", foreground="#334155")
 
         # Open Folder Button at bottom of sidebar
-        self.btn_open = tk.Button(self.sidebar, text="📁 OPEN PROJECT FOLDER", command=self.controller.open_project, bg=self.CLR_BORDER, fg=self.CLR_TEXT, font=("Segoe UI", 9, "bold"), bd=0, pady=12)
+        self.btn_open = tk.Button(self.sidebar, text="📁 เปิดโฟลเดอร์โปรเจกต์", command=self.controller.open_project, bg=self.CLR_BORDER, fg=self.CLR_TEXT, font=("Segoe UI", 9, "bold"), bd=0, pady=12)
         self.btn_open.pack(side="bottom", fill="x", padx=20, pady=20)
         self._add_hover(self.btn_open, "#475569", self.CLR_BORDER)
 
-        self.btn_recent = tk.Button(self.sidebar, text="🕒 RECENT PROJECTS", command=self.controller.show_recent_menu, bg=self.CLR_SIDEBAR, fg=self.CLR_MUTED, font=("Segoe UI", 8), bd=0, pady=5)
+        self.btn_recent = tk.Button(self.sidebar, text="🕒 โปรเจกต์ล่าสุด", command=self.controller.show_recent_menu, bg=self.CLR_SIDEBAR, fg=self.CLR_MUTED, font=("Segoe UI", 8), bd=0, pady=5)
         self.btn_recent.pack(side="bottom", fill="x", padx=20)
         self._add_hover(self.btn_recent, self.CLR_BG, self.CLR_SIDEBAR)
 
@@ -213,22 +213,22 @@ class GropTxtUI:
         container.pack(fill="both", expand=True)
         
         # 1. Batch Selection & Config
-        batch_sec = tk.LabelFrame(container, text=" BATCH SELECTION & CONFIG ", bg=self.CLR_BG, fg=self.CLR_MUTED, font=("Segoe UI", 9, "bold"), padx=20, pady=20, bd=1, relief="solid", highlightthickness=1, highlightbackground=self.CLR_BORDER)
+        batch_sec = tk.LabelFrame(container, text=" การเลือกแบบกลุ่มและการตั้งค่า ", bg=self.CLR_BG, fg=self.CLR_MUTED, font=("Segoe UI", 9, "bold"), padx=20, pady=20, bd=1, relief="solid", highlightthickness=1, highlightbackground=self.CLR_BORDER)
         batch_sec.pack(fill="x", pady=(0, 25))
         
         header_row = tk.Frame(batch_sec, bg=self.CLR_BG)
         header_row.pack(fill="x", pady=(0, 15))
         
-        tk.Label(header_row, text="PASTE FILE PATHS (ONE PER LINE):", bg=self.CLR_BG, fg=self.CLR_MUTED, font=("Segoe UI", 8, "bold")).pack(side="left")
+        tk.Label(header_row, text="วางเส้นทางไฟล์ (หนึ่งไฟล์ต่อบรรทัด):", bg=self.CLR_BG, fg=self.CLR_MUTED, font=("Segoe UI", 8, "bold")).pack(side="left")
         
         btn_row = tk.Frame(header_row, bg=self.CLR_BG)
         btn_row.pack(side="right")
         
-        self.btn_apply = tk.Button(btn_row, text="APPLY BATCH", command=self.controller.apply_batch, bg=self.CLR_ACCENT, fg=self.CLR_BG, font=("Segoe UI", 8, "bold"), bd=0, padx=15, pady=6)
+        self.btn_apply = tk.Button(btn_row, text="ใช้การเลือกแบบกลุ่ม", command=self.controller.apply_batch, bg=self.CLR_ACCENT, fg=self.CLR_BG, font=("Segoe UI", 8, "bold"), bd=0, padx=15, pady=6)
         self.btn_apply.pack(side="left", padx=5)
         self._add_hover(self.btn_apply, "#34d399", self.CLR_ACCENT)
         
-        self.btn_clear_batch = tk.Button(btn_row, text="CLEAR", command=lambda: self.batch_text.delete('1.0', tk.END), bg=self.CLR_BORDER, fg=self.CLR_TEXT, font=("Segoe UI", 8, "bold"), bd=0, padx=15, pady=6)
+        self.btn_clear_batch = tk.Button(btn_row, text="ล้างข้อมูล", command=lambda: self.batch_text.delete('1.0', tk.END), bg=self.CLR_BORDER, fg=self.CLR_TEXT, font=("Segoe UI", 8, "bold"), bd=0, padx=15, pady=6)
         self.btn_clear_batch.pack(side="left", padx=5)
         self._add_hover(self.btn_clear_batch, "#475569", self.CLR_BORDER)
         
@@ -242,9 +242,9 @@ class GropTxtUI:
         # Quick Presets
         preset_frame = tk.Frame(config_row, bg=self.CLR_BG)
         preset_frame.pack(side="top", fill="x", pady=(0, 15))
-        tk.Label(preset_frame, text="QUICK PRESETS:", bg=self.CLR_BG, fg=self.CLR_ACCENT, font=("Segoe UI", 8, "bold")).pack(side="left", padx=(0, 10))
+        tk.Label(preset_frame, text="พรีเซ็ตด่วน:", bg=self.CLR_BG, fg=self.CLR_ACCENT, font=("Segoe UI", 8, "bold")).pack(side="left", padx=(0, 10))
         
-        for name in ["Frontend", "Backend", "Full Stack", "Docs"]:
+        for name in ["ฟรอนต์เอนด์", "แบ็คเอนด์", "ฟูลสแต็ก", "เอกสาร"]:
             btn = tk.Button(preset_frame, text=name, bg=self.CLR_BORDER, fg=self.CLR_TEXT, font=("Segoe UI", 8), bd=0, padx=10, pady=2, cursor="hand2",
                           command=lambda n=name: self.controller.apply_preset(n))
             btn.pack(side="left", padx=2)
@@ -253,7 +253,7 @@ class GropTxtUI:
         # Extensions
         ext_frame = tk.Frame(config_row, bg=self.CLR_BG)
         ext_frame.pack(side="left", fill="x", expand=True)
-        tk.Label(ext_frame, text="TARGET EXTENSIONS", bg=self.CLR_BG, fg=self.CLR_MUTED, font=("Segoe UI", 8, "bold")).pack(anchor="w")
+        tk.Label(ext_frame, text="นามสกุลไฟล์ที่ต้องการ", bg=self.CLR_BG, fg=self.CLR_MUTED, font=("Segoe UI", 8, "bold")).pack(anchor="w")
         self.ext_entry = tk.Entry(ext_frame, bg=self.CLR_SIDEBAR, fg=self.CLR_TEXT, bd=0, font=("JetBrains Mono", 10), highlightthickness=1, highlightbackground=self.CLR_BORDER)
         self.ext_entry.pack(fill="x", pady=(6, 0), padx=(0, 15))
         self.ext_entry.insert(0, ".py, .js, .tsx, .html, .css, .md, .txt")
@@ -261,37 +261,37 @@ class GropTxtUI:
         # Ignore
         ign_frame = tk.Frame(config_row, bg=self.CLR_BG)
         ign_frame.pack(side="left", fill="x", expand=True)
-        tk.Label(ign_frame, text="IGNORE LIST", bg=self.CLR_BG, fg="#ef4444", font=("Segoe UI", 8, "bold")).pack(anchor="w")
+        tk.Label(ign_frame, text="รายการที่ข้าม", bg=self.CLR_BG, fg="#ef4444", font=("Segoe UI", 8, "bold")).pack(anchor="w")
         self.ignore_entry = tk.Entry(ign_frame, bg=self.CLR_SIDEBAR, fg="#ef4444", bd=0, font=("JetBrains Mono", 10), highlightthickness=1, highlightbackground=self.CLR_BORDER)
         self.ignore_entry.pack(fill="x", pady=(6, 0))
         
         # 2. Selection Preview
-        preview_sec = tk.LabelFrame(container, text=" CURRENT SELECTION PREVIEW ", bg=self.CLR_BG, fg=self.CLR_MUTED, font=("Segoe UI", 9, "bold"), padx=0, pady=0, bd=1, relief="solid")
+        preview_sec = tk.LabelFrame(container, text=" ตัวอย่างไฟล์ที่เลือกปัจจุบัน ", bg=self.CLR_BG, fg=self.CLR_MUTED, font=("Segoe UI", 9, "bold"), padx=0, pady=0, bd=1, relief="solid")
         preview_sec.pack(fill="x", pady=(0, 25))
         
         preview_header = tk.Frame(preview_sec, bg=self.CLR_SIDEBAR, padx=20, pady=10)
         preview_header.pack(fill="x")
         
-        tk.Label(preview_header, text="FILES SELECTED", bg=self.CLR_SIDEBAR, fg=self.CLR_MUTED, font=("Segoe UI", 8, "bold")).pack(side="left")
+        tk.Label(preview_header, text="ไฟล์ที่ถูกเลือก", bg=self.CLR_SIDEBAR, fg=self.CLR_MUTED, font=("Segoe UI", 8, "bold")).pack(side="left")
         
         prev_btn_row = tk.Frame(preview_header, bg=self.CLR_SIDEBAR)
         prev_btn_row.pack(side="right")
         
-        tk.Button(prev_btn_row, text="SELECT ALL", command=self.controller.select_all, bg=self.CLR_SIDEBAR, fg=self.CLR_ACCENT, font=("Segoe UI", 8, "bold"), bd=0, cursor="hand2").pack(side="left", padx=10)
-        tk.Button(prev_btn_row, text="DESELECT ALL", command=self.controller.deselect_all, bg=self.CLR_SIDEBAR, fg="#ef4444", font=("Segoe UI", 8, "bold"), bd=0, cursor="hand2").pack(side="left", padx=10)
+        tk.Button(prev_btn_row, text="เลือกทั้งหมด", command=self.controller.select_all, bg=self.CLR_SIDEBAR, fg=self.CLR_ACCENT, font=("Segoe UI", 8, "bold"), bd=0, cursor="hand2").pack(side="left", padx=10)
+        tk.Button(prev_btn_row, text="ยกเลิกการเลือกทั้งหมด", command=self.controller.deselect_all, bg=self.CLR_SIDEBAR, fg="#ef4444", font=("Segoe UI", 8, "bold"), bd=0, cursor="hand2").pack(side="left", padx=10)
         
         self.selection_display = scrolledtext.ScrolledText(preview_sec, height=8, bg="#020617", fg=self.CLR_ACCENT, font=("JetBrains Mono", 9), bd=0, padx=20, pady=15)
         self.selection_display.pack(fill="x")
         self.selection_display.config(state="disabled")
         
         # 3. Merge Button
-        self.merge_status = tk.Label(container, text="Ready to Merge", bg=self.CLR_BG, fg=self.CLR_MUTED, font=("Segoe UI", 9))
+        self.merge_status = tk.Label(container, text="พร้อมสำหรับการรวมไฟล์", bg=self.CLR_BG, fg=self.CLR_MUTED, font=("Segoe UI", 9))
         self.merge_status.pack(anchor="w", pady=(0, 5))
         
         self.progress = ttk.Progressbar(container, orient="horizontal", mode="determinate")
         self.progress.pack(fill="x", pady=(0, 15))
         
-        self.btn_merge = tk.Button(container, text="SYNC & MERGE (ULTRA STREAM)", command=self.controller.run_merge, bg=self.CLR_ACCENT, fg=self.CLR_BG, font=("Segoe UI", 12, "bold"), bd=0, pady=18)
+        self.btn_merge = tk.Button(container, text="ซิงค์และรวมไฟล์ (สตรีมความเร็วสูง)", command=self.controller.run_merge, bg=self.CLR_ACCENT, fg=self.CLR_BG, font=("Segoe UI", 12, "bold"), bd=0, pady=18)
         self.btn_merge.pack(fill="x", pady=(0, 25))
         self._add_hover(self.btn_merge, "#34d399", self.CLR_ACCENT)
         
@@ -302,8 +302,8 @@ class GropTxtUI:
         log_header = tk.Frame(log_sec, bg=self.CLR_SIDEBAR, padx=20, pady=10)
         log_header.pack(fill="x")
         
-        tk.Label(log_header, text="ACTIVITY LOG", bg=self.CLR_SIDEBAR, fg=self.CLR_MUTED, font=("Segoe UI", 8, "bold")).pack(side="left")
-        tk.Button(log_header, text="CLEAR LOG", command=lambda: self.log_area.delete('1.0', tk.END), bg=self.CLR_SIDEBAR, fg=self.CLR_MUTED, font=("Segoe UI", 8), bd=0, cursor="hand2").pack(side="right")
+        tk.Label(log_header, text="บันทึกกิจกรรม", bg=self.CLR_SIDEBAR, fg=self.CLR_MUTED, font=("Segoe UI", 8, "bold")).pack(side="left")
+        tk.Button(log_header, text="ล้างบันทึก", command=lambda: self.log_area.delete('1.0', tk.END), bg=self.CLR_SIDEBAR, fg=self.CLR_MUTED, font=("Segoe UI", 8), bd=0, cursor="hand2").pack(side="right")
         
         self.log_area = scrolledtext.ScrolledText(log_sec, bg="#000000", fg=self.CLR_ACCENT, font=("JetBrains Mono", 9), bd=0, padx=20, pady=15)
         self.log_area.pack(fill="both", expand=True)
@@ -315,12 +315,12 @@ class GropTxtUI:
         ctrl = tk.Frame(container, bg=self.CLR_BG)
         ctrl.pack(fill="x", pady=(0, 20))
         
-        tk.Label(ctrl, text="🔍 FILTER PATHS:", bg=self.CLR_BG, fg=self.CLR_ACCENT, font=("Segoe UI", 10, "bold")).pack(side="left")
+        tk.Label(ctrl, text="🔍 กรองเส้นทาง:", bg=self.CLR_BG, fg=self.CLR_ACCENT, font=("Segoe UI", 10, "bold")).pack(side="left")
         self.map_search = tk.Entry(ctrl, bg=self.CLR_SIDEBAR, fg=self.CLR_TEXT, bd=0, font=("JetBrains Mono", 11), width=40, highlightthickness=1, highlightbackground=self.CLR_BORDER)
         self.map_search.pack(side="left", padx=20)
         self.map_search.bind("<KeyRelease>", lambda e: self.controller.filter_map())
         
-        tk.Button(ctrl, text="📋 COPY ALL", command=self.controller.copy_map_paths, bg=self.CLR_ACCENT, fg=self.CLR_BG, font=("Segoe UI", 9, "bold"), bd=0, padx=20, pady=8).pack(side="right")
+        tk.Button(ctrl, text="📋 คัดลอกทั้งหมด", command=self.controller.copy_map_paths, bg=self.CLR_ACCENT, fg=self.CLR_BG, font=("Segoe UI", 9, "bold"), bd=0, padx=20, pady=8).pack(side="right")
 
         self.map_display = scrolledtext.ScrolledText(container, bg=self.CLR_SIDEBAR, fg="#cbd5e1", font=("JetBrains Mono", 10), bd=0, padx=20, pady=20, highlightthickness=1, highlightbackground=self.CLR_BORDER)
         self.map_display.pack(fill="both", expand=True)
@@ -332,20 +332,20 @@ class GropTxtUI:
         header = tk.Frame(container, bg=self.CLR_BG)
         header.pack(fill="x", pady=(0, 20))
         
-        tk.Button(header, text="📂 SELECT SOURCE FILES", command=self.controller.select_sources, bg=self.CLR_ACCENT, fg=self.CLR_BG, font=("Segoe UI", 9, "bold"), bd=0, padx=20, pady=8).pack(side="left")
-        tk.Button(header, text="🔄 REFRESH", command=self.controller.refresh_update_matches, bg=self.CLR_BORDER, fg=self.CLR_TEXT, font=("Segoe UI", 9), bd=0, padx=20, pady=8).pack(side="right")
+        tk.Button(header, text="📂 เลือกไฟล์ต้นทาง", command=self.controller.select_sources, bg=self.CLR_ACCENT, fg=self.CLR_BG, font=("Segoe UI", 9, "bold"), bd=0, padx=20, pady=8).pack(side="left")
+        tk.Button(header, text="🔄 รีเฟรช", command=self.controller.refresh_update_matches, bg=self.CLR_BORDER, fg=self.CLR_TEXT, font=("Segoe UI", 9), bd=0, padx=20, pady=8).pack(side="right")
         
         self.update_tree = ttk.Treeview(container, columns=("Source", "Target", "Status"), show="headings", height=15)
         self.update_tree.pack(fill="both", expand=True, pady=15)
-        self.update_tree.heading("Source", text="Source File")
-        self.update_tree.heading("Target", text="Project Path")
-        self.update_tree.heading("Status", text="Status")
+        self.update_tree.heading("Source", text="ไฟล์ต้นทาง")
+        self.update_tree.heading("Target", text="เส้นทางในโปรเจกต์")
+        self.update_tree.heading("Status", text="สถานะ")
         
         self.update_tree.tag_configure("ready", foreground=self.CLR_ACCENT)
         self.update_tree.tag_configure("missing", foreground="#ef4444")
         self.update_tree.tag_configure("warning", foreground="#eab308")
 
-        tk.Button(container, text="⚡ EXECUTE SMART OVERWRITE", command=self.controller.run_overwrite, bg="#ef4444", fg=self.CLR_TEXT, font=("Segoe UI", 11, "bold"), bd=0, pady=15).pack(fill="x")
+        tk.Button(container, text="⚡ ดำเนินการเขียนทับอัจฉริยะ", command=self.controller.run_overwrite, bg="#ef4444", fg=self.CLR_TEXT, font=("Segoe UI", 11, "bold"), bd=0, pady=15).pack(fill="x")
 
     def _build_history_tab(self):
         container = tk.Frame(self.tab_history, bg=self.CLR_BG, padx=30, pady=30)
@@ -353,32 +353,32 @@ class GropTxtUI:
         
         self.hist_tree = ttk.Treeview(container, columns=("Time", "Profile", "File"), show="headings", height=15)
         self.hist_tree.pack(fill="both", expand=True)
-        self.hist_tree.heading("Time", text="Time")
-        self.hist_tree.heading("Profile", text="Profile")
-        self.hist_tree.heading("File", text="Filename")
+        self.hist_tree.heading("Time", text="เวลา")
+        self.hist_tree.heading("Profile", text="โปรไฟล์")
+        self.hist_tree.heading("File", text="ชื่อไฟล์")
         
         btn_frame = tk.Frame(container, bg=self.CLR_BG, pady=20)
         btn_frame.pack(fill="x")
-        tk.Button(btn_frame, text="📂 OPEN FILE", command=self.controller.open_history_file, bg=self.CLR_ACCENT, fg=self.CLR_BG, font=("Segoe UI", 10, "bold"), bd=0, padx=25, pady=10).pack(side="left", padx=8)
-        tk.Button(btn_frame, text="🔍 SHOW FOLDER", command=self.controller.open_history_folder, bg=self.CLR_BORDER, fg=self.CLR_TEXT, font=("Segoe UI", 10, "bold"), bd=0, padx=25, pady=10).pack(side="left", padx=8)
-        tk.Button(btn_frame, text="🗑️ CLEAR HISTORY", command=self.controller.clear_history, bg="#ef4444", fg=self.CLR_TEXT, font=("Segoe UI", 10, "bold"), bd=0, padx=25, pady=10).pack(side="right", padx=8)
+        tk.Button(btn_frame, text="📂 เปิดไฟล์", command=self.controller.open_history_file, bg=self.CLR_ACCENT, fg=self.CLR_BG, font=("Segoe UI", 10, "bold"), bd=0, padx=25, pady=10).pack(side="left", padx=8)
+        tk.Button(btn_frame, text="🔍 แสดงโฟลเดอร์", command=self.controller.open_history_folder, bg=self.CLR_BORDER, fg=self.CLR_TEXT, font=("Segoe UI", 10, "bold"), bd=0, padx=25, pady=10).pack(side="left", padx=8)
+        tk.Button(btn_frame, text="🗑️ ล้างประวัติ", command=self.controller.clear_history, bg="#ef4444", fg=self.CLR_TEXT, font=("Segoe UI", 10, "bold"), bd=0, padx=25, pady=10).pack(side="right", padx=8)
 
     def _build_footer(self):
         left_foot = tk.Frame(self.footer, bg=self.CLR_SIDEBAR)
         left_foot.pack(side="left", padx=20)
         
-        tk.Label(left_foot, text="Project:", bg=self.CLR_SIDEBAR, fg=self.CLR_MUTED, font=("Segoe UI", 8)).pack(side="left")
-        self.status_label = tk.Label(left_foot, text="None", bg=self.CLR_SIDEBAR, fg=self.CLR_TEXT, font=("Segoe UI", 8, "bold"))
+        tk.Label(left_foot, text="โปรเจกต์:", bg=self.CLR_SIDEBAR, fg=self.CLR_MUTED, font=("Segoe UI", 8)).pack(side="left")
+        self.status_label = tk.Label(left_foot, text="ไม่มี", bg=self.CLR_SIDEBAR, fg=self.CLR_TEXT, font=("Segoe UI", 8, "bold"))
         self.status_label.pack(side="left", padx=(5, 20))
         
-        tk.Label(left_foot, text="Profile:", bg=self.CLR_SIDEBAR, fg=self.CLR_MUTED, font=("Segoe UI", 8)).pack(side="left")
-        self.profile_label = tk.Label(left_foot, text="Default", bg=self.CLR_SIDEBAR, fg=self.CLR_TEXT, font=("Segoe UI", 8, "bold"))
+        tk.Label(left_foot, text="โปรไฟล์:", bg=self.CLR_SIDEBAR, fg=self.CLR_MUTED, font=("Segoe UI", 8)).pack(side="left")
+        self.profile_label = tk.Label(left_foot, text="ค่าเริ่มต้น", bg=self.CLR_SIDEBAR, fg=self.CLR_TEXT, font=("Segoe UI", 8, "bold"))
         self.profile_label.pack(side="left", padx=(5, 0))
         
         right_foot = tk.Frame(self.footer, bg=self.CLR_SIDEBAR)
         right_foot.pack(side="right", padx=20)
         
-        self.selection_label = tk.Label(right_foot, text="Selected: 0 files", bg=self.CLR_SIDEBAR, fg=self.CLR_ACCENT, font=("Segoe UI", 8, "bold"))
+        self.selection_label = tk.Label(right_foot, text="เลือกแล้ว: 0 ไฟล์", bg=self.CLR_SIDEBAR, fg=self.CLR_ACCENT, font=("Segoe UI", 8, "bold"))
         self.selection_label.pack(side="left", padx=20)
         
         tk.Label(right_foot, text="UTF-8", bg=self.CLR_SIDEBAR, fg=self.CLR_MUTED, font=("Segoe UI", 8)).pack(side="left", padx=10)
@@ -398,15 +398,25 @@ class GropTxtUI:
         self.selection_display.config(state="normal")
         self.selection_display.delete('1.0', tk.END)
         
-        sorted_paths = sorted(list(selected_paths))
-        if not sorted_paths:
-            self.selection_display.insert(tk.END, "(No files selected)")
+        # กรองเฉพาะไฟล์ที่ตรงตาม Extension ปัจจุบัน
+        ext_str = self.ext_entry.get()
+        exts = [x.strip().lower() if x.strip().startswith(".") else "." + x.strip().lower() 
+               for x in ext_str.split(",") if x.strip()]
+        
+        valid_files = []
+        for p in selected_paths:
+            if os.path.isfile(p):
+                if not exts or any(p.lower().endswith(e) for e in exts):
+                    valid_files.append(p)
+        
+        valid_files.sort()
+        
+        if not valid_files:
+            self.selection_display.insert(tk.END, "(ไม่มีไฟล์ที่ตรงเงื่อนไขถูกเลือก)")
         else:
-            # นับจำนวนไฟล์ (ไม่รวมโฟลเดอร์)
-            files_count = sum(1 for p in sorted_paths if os.path.isfile(p))
-            self.selection_display.insert(tk.END, f"Selected: {files_count} files\n" + "-"*40 + "\n")
+            self.selection_display.insert(tk.END, f"เลือกแล้ว: {len(valid_files)} ไฟล์\n" + "-"*40 + "\n")
             
-            for i, p in enumerate(sorted_paths, 1):
+            for i, p in enumerate(valid_files, 1):
                 try:
                     root = self.controller.engine.project_root
                     rel = os.path.relpath(p, root) if root and p.startswith(root) else p

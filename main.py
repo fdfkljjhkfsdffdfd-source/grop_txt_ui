@@ -60,7 +60,7 @@ class GropTxtController:
         self.ui.profile_label.config(text=self.engine.current_profile)
         
         files_count = sum(1 for p in self.engine.selected_paths if os.path.isfile(p))
-        self.ui.selection_label.config(text=f"Selected: {files_count} files")
+        self.ui.selection_label.config(text=f"เลือกแล้ว: {files_count} ไฟล์")
 
     def open_project(self):
         """เปิดโฟลเดอร์โปรเจกต์"""
@@ -79,7 +79,7 @@ class GropTxtController:
             self.filter_map()
             self.ui.update_selection_preview(self.engine.selected_paths)
             self._update_status_bar()
-            self.ui.log(f"Project opened: {path}")
+            self.ui.log(f"เปิดโปรเจกต์แล้ว: {path}")
             self.update_recent_projects(path)
 
     def update_recent_projects(self, path):
@@ -94,7 +94,7 @@ class GropTxtController:
         """แสดงเมนูโปรเจกต์ล่าสุด"""
         menu = tk.Menu(self.root, tearoff=0, bg="#1e293b", fg="#cbd5e1", activebackground="#38bdf8", activeforeground="#0f172a")
         if not self.engine.recent_projects:
-            menu.add_command(label="(No recent projects)", state="disabled")
+            menu.add_command(label="(ไม่มีโปรเจกต์ล่าสุด)", state="disabled")
         else:
             for p in self.engine.recent_projects:
                 # ใช้ default argument ใน lambda เพื่อป้องกันปัญหา closure
@@ -105,19 +105,19 @@ class GropTxtController:
         menu.post(x, y)
 
     def save_new_profile(self):
-        name = simpledialog.askstring("Profile", "Name:")
+        name = simpledialog.askstring("โปรไฟล์", "ชื่อ:")
         if self.engine.save_new_profile(name):
             self.ui.prof_cb['values'] = list(self.engine.profiles.keys())
             self.ui.prof_var.set(name)
             self.engine.save_config(self.ui.ignore_entry.get())
-            self.ui.log(f"Profile '{name}' saved.")
+            self.ui.log(f"บันทึกโปรไฟล์ '{name}' แล้ว")
 
     def delete_profile(self):
         name = self.ui.prof_var.get()
-        if messagebox.askyesno("Confirm", f"Delete profile '{name}'?"):
+        if messagebox.askyesno("ยืนยัน", f"ลบโปรไฟล์ '{name}' หรือไม่?"):
             if self.engine.delete_profile(name):
                 self._sync_engine_to_ui()
-                self.ui.log(f"Profile '{name}' deleted.")
+                self.ui.log(f"ลบโปรไฟล์ '{name}' แล้ว")
 
     def apply_batch(self):
         raw = self.ui.batch_text.get('1.0', tk.END).strip()
@@ -125,17 +125,17 @@ class GropTxtController:
         self._update_tree_visuals()
         self.ui.update_selection_preview(self.engine.selected_paths)
         self._update_status_bar()
-        self.ui.log(f"Batch applied: {count} files selected.")
+        self.ui.log(f"ใช้การเลือกแบบกลุ่มแล้ว: เลือก {count} ไฟล์")
         if not_found:
-            self.ui.log(f"⚠️ {len(not_found)} paths not found.")
+            self.ui.log(f"⚠️ ไม่พบ {len(not_found)} เส้นทาง")
 
     def clear_selection(self):
-        if messagebox.askyesno("Confirm", "Clear all selected files?"):
+        if messagebox.askyesno("ยืนยัน", "ล้างไฟล์ที่เลือกทั้งหมดหรือไม่?"):
             self.engine.selected_paths = set()
             self._update_tree_visuals()
             self.ui.update_selection_preview(self.engine.selected_paths)
             self._update_status_bar()
-            self.ui.log("Selection cleared.")
+            self.ui.log("ล้างการเลือกแล้ว")
 
     def refresh_tree(self):
         """รีเฟรชรายการไฟล์ใน Treeview"""
@@ -157,7 +157,7 @@ class GropTxtController:
                 if i.startswith(".") and i != ".git": continue
                 
                 if i in ignores:
-                    self.ui.tree.insert(parent, "end", text=f"🚫 {i} (Ignored)", values=(full,), tags=("ignored",))
+                    self.ui.tree.insert(parent, "end", text=f"🚫 {i} (ข้าม)", values=(full,), tags=("ignored",))
                 else:
                     icon = "📂" if is_dir else "📄"
                     node = self.ui.tree.insert(parent, "end", text=f"{icon} {i}", values=(full,), tags=("folder" if is_dir else ""))
@@ -210,11 +210,16 @@ class GropTxtController:
             
             for root, dirs, files in os.walk(path):
                 dirs[:] = [d for d in dirs if d not in ignores and not d.startswith('.')]
+                has_matching_file = False
                 for f in files:
                     if any(f.lower().endswith(e) for e in exts) and f not in ignores:
                         self.engine.selected_paths.add(os.path.join(root, f))
+                        has_matching_file = True
+                
+                if has_matching_file:
+                    self.engine.selected_paths.add(root)
             
-            self.engine.selected_paths.add(path) # เพิ่มโฟลเดอร์เองด้วยเพื่อให้ UI แสดงผล
+            # ไม่ต้องเพิ่ม path (folder) เองถ้าไม่มีไฟล์ข้างใน
         else:
             tags = self.ui.tree.item(node, "tags")
             if "ignored" not in tags:
@@ -252,11 +257,17 @@ class GropTxtController:
         
         for root, dirs, files in os.walk(self.engine.project_root):
             dirs[:] = [d for d in dirs if d not in ignores and not d.startswith('.')]
-            # เพิ่มโฟลเดอร์เข้า selection เพื่อให้ UI สวยงาม
-            self.engine.selected_paths.add(root)
+            
+            # ตรวจสอบว่ามีไฟล์ที่ตรงตาม Extension ในโฟลเดอร์นี้หรือไม่
+            has_matching_file = False
             for f in files:
                 if any(f.lower().endswith(e) for e in exts) and f not in ignores:
                     self.engine.selected_paths.add(os.path.join(root, f))
+                    has_matching_file = True
+            
+            # เพิ่มโฟลเดอร์เข้า selection เฉพาะถ้ามีไฟล์ที่ตรงเงื่อนไข (เพื่อให้ UI แสดงเครื่องหมายถูก)
+            if has_matching_file:
+                self.engine.selected_paths.add(root)
         
         self._update_tree_visuals()
         self.ui.update_selection_preview(self.engine.selected_paths)
@@ -307,16 +318,16 @@ class GropTxtController:
     def run_merge(self):
         """เริ่มกระบวนการรวมไฟล์"""
         if not self.engine.selected_paths:
-            messagebox.showwarning("Warning", "Please select files first!")
+            messagebox.showwarning("คำเตือน", "กรุณาเลือกไฟล์ก่อน!")
             return
         
         def update_progress(current, total):
             percent = (current / total) * 100
             self.root.after(0, lambda: self.ui.progress.config(value=percent))
-            self.root.after(0, lambda: self.ui.merge_status.config(text=f"Merging... {current}/{total} files"))
+            self.root.after(0, lambda: self.ui.merge_status.config(text=f"กำลังรวมไฟล์... {current}/{total} ไฟล์"))
 
         def task():
-            self.ui.log("🚀 Starting Merge Process...")
+            self.ui.log("🚀 กำลังเริ่มกระบวนการรวมไฟล์...")
             self.root.after(0, lambda: self.ui.progress.config(value=0))
             
             path, count = self.engine.merge_files(
@@ -326,17 +337,17 @@ class GropTxtController:
             )
             
             if path:
-                self.ui.log(f"✅ Success! Merged {count} files into {os.path.basename(path)}")
+                self.ui.log(f"✅ สำเร็จ! รวม {count} ไฟล์เข้ากับ {os.path.basename(path)}")
                 self.root.after(0, self.update_history_ui)
                 self.root.after(0, lambda: self.ui.progress.config(value=100))
-                self.root.after(0, lambda: self.ui.merge_status.config(text="Merge Complete!"))
+                self.root.after(0, lambda: self.ui.merge_status.config(text="รวมไฟล์เสร็จสมบูรณ์!"))
                 self.root.after(0, self._update_status_bar)
                 
-                if messagebox.askyesno("Success", f"Merged {count} files.\nOpen output file?"):
+                if messagebox.askyesno("สำเร็จ", f"รวม {count} ไฟล์แล้ว\nต้องการเปิดไฟล์เอาต์พุตหรือไม่?"):
                     if sys.platform == 'win32': os.startfile(path)
                     else: subprocess.run(['open', path])
             else:
-                self.ui.log("❌ Merge failed or no files found.")
+                self.ui.log("❌ การรวมไฟล์ล้มเหลวหรือไม่พบไฟล์")
                 self.root.after(0, lambda: self.ui.progress.config(value=0))
                 self.root.after(0, self._update_status_bar)
                 
@@ -363,13 +374,13 @@ class GropTxtController:
         
         # 2. สั่ง Scan และ Select All ที่ตรงเงื่อนไขอัตโนมัติ
         if self.engine.project_root:
-            self.ui.log(f"Applying Preset: {name}...")
+            self.ui.log(f"กำลังใช้พรีเซ็ต: {name}...")
             self.engine.scan_project_files(preset['ignore'])
             self.select_all() # ติ๊กเลือกไฟล์ทั้งหมดที่ตรงตาม Extension ใหม่
             self.refresh_tree()
-            self.ui.log(f"Preset '{name}' applied. Matching files selected.")
+            self.ui.log(f"ใช้พรีเซ็ต '{name}' แล้ว เลือกไฟล์ที่ตรงกันแล้ว")
         else:
-            self.ui.log(f"Preset '{name}' loaded. Open a project to see results.")
+            self.ui.log(f"โหลดพรีเซ็ต '{name}' แล้ว เปิดโปรเจกต์เพื่อดูผลลัพธ์")
 
     def _filter_node_recursive(self, parent, query):
         """ซ่อน/แสดง Node ตามคำค้นหา"""
@@ -404,13 +415,13 @@ class GropTxtController:
         path = values[0]
 
         menu = tk.Menu(self.root, tearoff=0, bg="#1e293b", fg="#cbd5e1", activebackground="#38bdf8", activeforeground="#0f172a")
-        menu.add_command(label="📂 Open in Explorer", command=lambda: self.open_in_explorer(path))
-        menu.add_command(label="📋 Copy Path", command=lambda: self.copy_path(path))
+        menu.add_command(label="📂 เปิดใน Explorer", command=lambda: self.open_in_explorer(path))
+        menu.add_command(label="📋 คัดลอกเส้นทาง", command=lambda: self.copy_path(path))
         menu.add_separator()
         if path in self.engine.selected_paths:
-            menu.add_command(label="❌ Deselect", command=lambda: self._recursive_deselect(item))
+            menu.add_command(label="❌ ยกเลิกการเลือก", command=lambda: self._recursive_deselect(item))
         else:
-            menu.add_command(label="✅ Select", command=lambda: self._recursive_select(item))
+            menu.add_command(label="✅ เลือก", command=lambda: self._recursive_select(item))
             
         menu.post(event.x_root, event.y_root)
 
@@ -426,7 +437,7 @@ class GropTxtController:
         """คัดลอก Path ไปยัง Clipboard"""
         self.root.clipboard_clear()
         self.root.clipboard_append(path)
-        self.ui.log(f"Copied path: {path}")
+        self.ui.log(f"คัดลอกเส้นทางแล้ว: {path}")
 
     def update_history_ui(self):
         """อัปเดตตารางประวัติการทำงาน"""
@@ -454,7 +465,7 @@ class GropTxtController:
             else: subprocess.run(['open', folder])
 
     def clear_history(self):
-        if messagebox.askyesno("Confirm", "Clear all history?"):
+        if messagebox.askyesno("ยืนยัน", "ล้างประวัติทั้งหมดหรือไม่?"):
             self.engine.history = []
             self.update_history_ui()
             self.engine.save_config(self.ui.ignore_entry.get())
@@ -476,7 +487,7 @@ class GropTxtController:
         if content:
             self.root.clipboard_clear()
             self.root.clipboard_append(content)
-            self.ui.log("Copied map paths to clipboard.")
+            self.ui.log("คัดลอกเส้นทางแผนผังไปยังคลิปบอร์ดแล้ว")
 
     def select_sources(self):
         """เลือกไฟล์ต้นทางสำหรับ Smart Update"""
@@ -506,13 +517,13 @@ class GropTxtController:
             
         ready_items = [m for m in items_to_process if m['full_target']]
         if not ready_items:
-            messagebox.showwarning("Warning", "No valid matches to update.")
+            messagebox.showwarning("คำเตือน", "ไม่มีไฟล์ที่ตรงกันสำหรับการอัปเดต")
             return
             
-        if messagebox.askyesno("Confirm", f"Overwrite {len(ready_items)} files?"):
+        if messagebox.askyesno("ยืนยัน", f"เขียนทับ {len(ready_items)} ไฟล์หรือไม่?"):
             count, logs = self.engine.execute_overwrite(ready_items)
             for log in logs: self.ui.log(log)
-            messagebox.showinfo("Success", f"Updated {count} files.")
+            messagebox.showinfo("สำเร็จ", f"อัปเดต {count} ไฟล์แล้ว")
             self.refresh_update_matches()
 
     def on_profile_change(self, e):
