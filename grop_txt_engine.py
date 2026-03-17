@@ -308,3 +308,39 @@ class GropTxtEngine:
         }
         self.history.append(new_history)
         return final_p, len(file_list)
+
+    def generate_json_template(self, raw_json):
+        """แปลง JSON ขนาดใหญ่ให้เป็นเทมเพลตโครงสร้างที่สรุปแล้ว"""
+        try:
+            data = json.loads(raw_json)
+            
+            def simplify(obj):
+                if isinstance(obj, dict):
+                    new_obj = {}
+                    for k, v in obj.items():
+                        new_obj[k] = simplify(v)
+                    return new_obj
+                elif isinstance(obj, list):
+                    if not obj:
+                        return []
+                    
+                    # ถ้าเป็นรายการของ Object ที่มี 'type' ให้เก็บตัวอย่างของแต่ละ type
+                    if all(isinstance(item, dict) and 'type' in item for item in obj if item is not None):
+                        seen_types = set()
+                        templates = []
+                        for item in obj:
+                            t = item.get('type')
+                            if t not in seen_types:
+                                templates.append(simplify(item))
+                                seen_types.add(t)
+                        return templates
+                    
+                    # ถ้าเป็นรายการทั่วไป ให้เก็บแค่ตัวแรกเป็นตัวอย่าง
+                    return [simplify(obj[0])]
+                else:
+                    return obj
+
+            template_data = simplify(data)
+            return json.dumps(template_data, indent=2, ensure_ascii=False)
+        except Exception as e:
+            return f"Error: {str(e)}"

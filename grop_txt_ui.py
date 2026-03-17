@@ -155,6 +155,11 @@ class GropTxtUI:
         self.notebook.add(self.tab_history, text=" ประวัติ ")
         self._build_history_tab()
 
+        # Tab 5: JSON Tool
+        self.tab_json = tk.Frame(self.notebook, bg=self.CLR_BG)
+        self.notebook.add(self.tab_json, text=" เครื่องมือ JSON ")
+        self._build_json_tab()
+
     def _build_sidebar(self):
         # Project Selector Section
         proj_sec = tk.Frame(self.sidebar, bg=self.CLR_SIDEBAR, padx=20, pady=20)
@@ -362,6 +367,59 @@ class GropTxtUI:
         tk.Button(btn_frame, text="📂 เปิดไฟล์", command=self.controller.open_history_file, bg=self.CLR_ACCENT, fg=self.CLR_BG, font=("Segoe UI", 10, "bold"), bd=0, padx=25, pady=10).pack(side="left", padx=8)
         tk.Button(btn_frame, text="🔍 แสดงโฟลเดอร์", command=self.controller.open_history_folder, bg=self.CLR_BORDER, fg=self.CLR_TEXT, font=("Segoe UI", 10, "bold"), bd=0, padx=25, pady=10).pack(side="left", padx=8)
         tk.Button(btn_frame, text="🗑️ ล้างประวัติ", command=self.controller.clear_history, bg="#ef4444", fg=self.CLR_TEXT, font=("Segoe UI", 10, "bold"), bd=0, padx=25, pady=10).pack(side="right", padx=8)
+
+    def _build_json_tab(self):
+        container = tk.Frame(self.tab_json, bg=self.CLR_BG, padx=30, pady=30)
+        container.pack(fill="both", expand=True)
+        
+        header = tk.Frame(container, bg=self.CLR_BG)
+        header.pack(fill="x", pady=(0, 20))
+        
+        tk.Label(header, text="ตัวสร้างเทมเพลตโครงสร้าง JSON", bg=self.CLR_BG, fg=self.CLR_ACCENT, font=("Segoe UI", 12, "bold")).pack(side="left")
+        
+        # Main Area: Split Screen
+        split_frame = tk.Frame(container, bg=self.CLR_BG)
+        split_frame.pack(fill="both", expand=True)
+        
+        # Left: Input
+        left_frame = tk.Frame(split_frame, bg=self.CLR_BG)
+        left_frame.pack(side="left", fill="both", expand=True, padx=(0, 10))
+        
+        tk.Label(left_frame, text="วาง JSON ต้นฉบับที่นี่:", bg=self.CLR_BG, fg=self.CLR_MUTED, font=("Segoe UI", 9, "bold")).pack(anchor="w", pady=(0, 5))
+        self.json_input = scrolledtext.ScrolledText(left_frame, bg=self.CLR_SIDEBAR, fg=self.CLR_TEXT, font=("JetBrains Mono", 10), bd=0, highlightthickness=1, highlightbackground=self.CLR_BORDER)
+        self.json_input.pack(fill="both", expand=True)
+        
+        # Middle: Action
+        mid_frame = tk.Frame(split_frame, bg=self.CLR_BG, width=150)
+        mid_frame.pack(side="left", fill="y", padx=10)
+        mid_frame.pack_propagate(False)
+        
+        tk.Button(mid_frame, text="แปลงเป็น\nเทมเพลต ➔", command=self.controller.run_json_template, bg=self.CLR_ACCENT, fg=self.CLR_BG, font=("Segoe UI", 10, "bold"), bd=0, pady=20).pack(fill="x", pady=100)
+        tk.Button(mid_frame, text="ล้างข้อมูล", command=self._clear_json_fields, bg=self.CLR_BORDER, fg=self.CLR_TEXT, font=("Segoe UI", 9), bd=0, pady=10).pack(fill="x")
+        
+        # Right: Output
+        right_frame = tk.Frame(split_frame, bg=self.CLR_BG)
+        right_frame.pack(side="left", fill="both", expand=True, padx=(10, 0))
+        
+        tk.Label(right_frame, text="ผลลัพธ์โครงสร้าง (Template):", bg=self.CLR_BG, fg=self.CLR_ACCENT, font=("Segoe UI", 9, "bold")).pack(anchor="w", pady=(0, 5))
+        self.json_output = scrolledtext.ScrolledText(right_frame, bg="#020617", fg=self.CLR_ACCENT, font=("JetBrains Mono", 10), bd=0, highlightthickness=1, highlightbackground=self.CLR_BORDER)
+        self.json_output.pack(fill="both", expand=True)
+        
+        # Footer Action
+        footer = tk.Frame(container, bg=self.CLR_BG, pady=20)
+        footer.pack(fill="x")
+        tk.Button(footer, text="📋 คัดลอกผลลัพธ์", command=self._copy_json_output, bg=self.CLR_ACCENT, fg=self.CLR_BG, font=("Segoe UI", 10, "bold"), bd=0, padx=30, pady=12).pack(side="right")
+
+    def _clear_json_fields(self):
+        self.json_input.delete('1.0', tk.END)
+        self.json_output.delete('1.0', tk.END)
+
+    def _copy_json_output(self):
+        content = self.json_output.get('1.0', tk.END).strip()
+        if content:
+            self.root.clipboard_clear()
+            self.root.clipboard_append(content)
+            self.log("คัดลอกเทมเพลต JSON ไปยังคลิปบอร์ดแล้ว")
 
     def _build_footer(self):
         left_foot = tk.Frame(self.footer, bg=self.CLR_SIDEBAR)

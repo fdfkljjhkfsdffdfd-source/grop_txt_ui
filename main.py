@@ -529,6 +529,21 @@ class GropTxtController:
             messagebox.showinfo("สำเร็จ", f"อัปเดต {count} ไฟล์แล้ว")
             self.refresh_update_matches()
 
+    def run_json_template(self):
+        """รันการสร้างเทมเพลต JSON"""
+        raw = self.ui.json_input.get('1.0', tk.END).strip()
+        if not raw:
+            messagebox.showwarning("คำเตือน", "กรุณาวางข้อมูล JSON ก่อน")
+            return
+            
+        result = self.engine.generate_json_template(raw)
+        self.ui.json_output.delete('1.0', tk.END)
+        self.ui.json_output.insert(tk.END, result)
+        if "Error" not in result:
+            self.ui.log("สร้างเทมเพลต JSON สำเร็จ")
+        else:
+            self.ui.log(f"❌ เกิดข้อผิดพลาดในการประมวลผล JSON: {result}")
+
     def on_profile_change(self, e):
         """เมื่อเปลี่ยน Profile"""
         self.engine.current_profile = self.ui.prof_var.get()
