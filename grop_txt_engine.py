@@ -51,22 +51,111 @@ class GropTxtEngine:
         with open(self.config_file, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
 
-    def get_ignores(self, ignore_str):
-        return [i.strip() for i in ignore_str.split(",") if i.strip()]
+    def save_new_profile(self, name):
+        """สร้างโปรไฟล์ใหม่"""
+        if name:
+            self.profiles[name] = {
+                "root": self.project_root,
+                "selected": list(self.selected_paths)
+            }
+            self.current_profile = name
+            return True
+        return False
 
-    def scan_project_files(self, ignore_str):
-        """สแกนไฟล์ทั้งหมดในโปรเจกต์เพื่อทำ Project Map"""
-        if not self.project_root: return []
+    def delete_profile(self, name):
+        """ลบโปรไฟล์"""
+        if name != "Default" and name in self.profiles:
+            del self.profiles[name]
+            self.current_profile = "Default"
+            prof_data = self.profiles.get(self.current_profile, {})
+            self.project_root = prof_data.get("root", "")
+            self.selected_paths = set(prof_data.get("selected", []))
+            return True
+        return False
+
+    def apply_batch_selection(self, raw_text):
+        """ใช้การเลือกแบบ Batch จากรายการเส้นทางไฟล์"""
+        if not self.project_root:
+            return 0, []
+        
+        lines = [line.strip() for line in raw_text.split('\n') if line.strip()]
+        found_count = 0
+        not_found = []
+        
+        for line in lines:
+            p = line.replace('/', os.sep).replace('\\', os.sep)
+            target_p = os.path.normpath(p if os.path.isabs(p) else os.path.join(self.project_root, p))
+            if os.path.exists(target_p):
+                self.selected_paths.add(target_p)
+                found_count += 1
+            else:
+                not_found.append(line)
+        return found_count, not_found
+
+    def get_smart_update_matches(self, ignore_str):
+        """ค้นหาไฟล์ในโปรเจกต์ที่ชื่อตรงกับไฟล์ต้นทางที่เลือกไว้"""
+        if not self.project_root:
+            return []
+        
         ignores = self.get_ignores(ignore_str)
-        paths = []
+        project_files = {} # filename -> [list of full paths]
+        
         for root, dirs, files in os.walk(self.project_root):
             dirs[:] = [d for d in dirs if d not in ignores and not d.startswith('.')]
             for f in files:
                 if f in ignores: continue
-                rel_p = os.path.relpath(os.path.join(root, f), self.project_root)
-                paths.append(rel_p.replace(os.sep, '/'))
-        self.all_project_paths = sorted(paths)
-        return self.all_project_paths
+                if f not in project_files: project_files[f] = []
+                project_files[f].append(os.path.join(root, f))
+        
+        matches = []
+        for fname, src_path in self.source_files_map.items():
+            targets = project_files.get(fname, [])
+            if not targets:
+                matches.append({"source": fname, "target": "---", "status": "❌ Not Found", "full_target": None})
+            else:
+                for t in targets:
+                    rel_target = os.path.relpath(t, self.project_root)
+                    status = "✅ Ready" if len(targets) == 1 else "⚠️ Multiple Matches"
+                    matches.append({"source": fname, "target": rel_target, "status": status, "full_target": t})
+        return matches
+
+    def execute_overwrite(self, matches_to_apply):
+        """ดำเนินการเขียนทับไฟล์"""
+        success_count = 0
+        logs = []
+        for match in matches_to_apply:
+            src_path = self.source_files_map.get(match['source'])
+            target_path = match['full_target']
+            
+            if src_path and os.path.exists(src_path) and target_path and os.path.exists(target_path):
+                try:
+                    with open(src_path, 'r', encoding='utf-8', errors='ignore') as f_src:
+                        content = f_src.read()
+                    with open(target_path, 'w', encoding='utf-8') as f_dest:
+                        f_dest.write(content)
+                    success_count += 1
+                    logs.append(f"✅ Updated: {match['target']}")
+                except Exception as e:
+                    logs.append(f"❌ Failed {match['target']}: {e}")
+        return success_count, logs
+
+    def get_ignores(self, ignore_str):
+        """แปลงข้อความ Ignore เป็นรายการ"""
+        return [x.strip() for x in ignore_str.split(",") if x.strip()]
+
+    def scan_project_files(self, ignore_str):
+        """สแกนไฟล์ทั้งหมดในโปรเจกต์เพื่อใช้ใน Map และ Smart Update"""
+        if not self.project_root:
+            return
+        
+        ignores = self.get_ignores(ignore_str)
+        all_paths = []
+        for root, dirs, files in os.walk(self.project_root):
+            dirs[:] = [d for d in dirs if d not in ignores and not d.startswith('.')]
+            for f in files:
+                if f in ignores: continue
+                all_paths.append(os.path.relpath(os.path.join(root, f), self.project_root))
+        self.all_project_paths = sorted(all_paths)
 
     def merge_files(self, extensions_str, ignore_str):
         """รวมไฟล์ที่เลือกเข้าด้วยกัน"""
