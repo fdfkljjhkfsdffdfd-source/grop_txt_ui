@@ -239,6 +239,17 @@ class GropTxtUI:
         config_row = tk.Frame(batch_sec, bg=self.CLR_BG)
         config_row.pack(fill="x")
         
+        # Quick Presets
+        preset_frame = tk.Frame(config_row, bg=self.CLR_BG)
+        preset_frame.pack(side="top", fill="x", pady=(0, 15))
+        tk.Label(preset_frame, text="QUICK PRESETS:", bg=self.CLR_BG, fg=self.CLR_ACCENT, font=("Segoe UI", 8, "bold")).pack(side="left", padx=(0, 10))
+        
+        for name in ["Frontend", "Backend", "Full Stack", "Docs"]:
+            btn = tk.Button(preset_frame, text=name, bg=self.CLR_BORDER, fg=self.CLR_TEXT, font=("Segoe UI", 8), bd=0, padx=10, pady=2, cursor="hand2",
+                          command=lambda n=name: self.controller.apply_preset(n))
+            btn.pack(side="left", padx=2)
+            self._add_hover(btn, self.CLR_ACCENT, self.CLR_BORDER)
+
         # Extensions
         ext_frame = tk.Frame(config_row, bg=self.CLR_BG)
         ext_frame.pack(side="left", fill="x", expand=True)

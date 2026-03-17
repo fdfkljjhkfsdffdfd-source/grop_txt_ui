@@ -349,6 +349,28 @@ class GropTxtController:
         query = self.ui.tree_search.get().lower()
         self._filter_node_recursive("", query)
 
+    def apply_preset(self, name):
+        """ใช้การตั้งค่าจาก Preset ที่เลือก"""
+        preset = self.engine.presets.get(name)
+        if not preset:
+            return
+            
+        # 1. อัปเดต UI Fields
+        self.ui.ext_entry.delete(0, tk.END)
+        self.ui.ext_entry.insert(0, preset['ext'])
+        self.ui.ignore_entry.delete(0, tk.END)
+        self.ui.ignore_entry.insert(0, preset['ignore'])
+        
+        # 2. สั่ง Scan และ Select All ที่ตรงเงื่อนไขอัตโนมัติ
+        if self.engine.project_root:
+            self.ui.log(f"Applying Preset: {name}...")
+            self.engine.scan_project_files(preset['ignore'])
+            self.select_all() # ติ๊กเลือกไฟล์ทั้งหมดที่ตรงตาม Extension ใหม่
+            self.refresh_tree()
+            self.ui.log(f"Preset '{name}' applied. Matching files selected.")
+        else:
+            self.ui.log(f"Preset '{name}' loaded. Open a project to see results.")
+
     def _filter_node_recursive(self, parent, query):
         """ซ่อน/แสดง Node ตามคำค้นหา"""
         has_visible_child = False

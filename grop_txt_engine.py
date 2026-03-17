@@ -20,6 +20,26 @@ class GropTxtEngine:
         self.all_project_paths = []
         self.source_files_map = {}
 
+        # Presets Configuration
+        self.presets = {
+            "Frontend": {
+                "ext": ".tsx, .jsx, .js, .html, .css, .scss",
+                "ignore": "node_modules, .git, dist, build, .next"
+            },
+            "Backend": {
+                "ext": ".py, .sql, .env.example, .json, .yaml, .go, .php",
+                "ignore": "__pycache__, .venv, .git, node_modules, vendor"
+            },
+            "Full Stack": {
+                "ext": ".tsx, .ts, .py, .js, .sql, .html, .css, .json",
+                "ignore": "node_modules, .venv, .git, dist, build"
+            },
+            "Docs": {
+                "ext": ".md, .txt, .pdf, .docx",
+                "ignore": ".git, node_modules"
+            }
+        }
+
     def load_config(self):
         """โหลดค่าคอนฟิกจากไฟล์ JSON"""
         if os.path.exists(self.config_file):
